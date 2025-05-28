@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - Mengtumbas{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Category Header -->
+    <div class="mb-8">
+        <div class="flex items-center space-x-4 mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                {% if category.image %}
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover rounded-lg">
+                {% else %}
+                    <i class="fas fa-cube text-2xl text-blue-600"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ category.name }}</h1>
+                <p class="text-gray-600 mt-1">{{ category.description|default:"Jelajahi produk-produk terbaik dalam kategori ini" }}</p>
+            </div>
+        </div>
+        
+        <div class="text-sm text-gray-600">
+            <span>{{ page_obj.paginator.count }} produk ditemukan</span>
+        </div>
+    </div>
+
+    <!-- Filter and Sort -->
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+        <!-- Search within category -->
+        <div class="flex-1 max-w-md">
+            <form method="get" class="relative">
+                <input type="text" name="search" value="{{ request.GET.search }}" 
+                       placeholder="Cari dalam kategori {{ category.name }}..."
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                {% for key, value in request.GET.items %}
+                    {% if key != 'search' and key != 'page' %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endif %}
+                {% endfor %}
+            </form>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-600">Urutkan:</span>
+            <select onchange="updateSort(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">Pilih urutan</option>
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Nama A-Z</option>
+                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Harga Terendah</option>
+                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Harga Tertinggi</option>
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Terbaru</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    {% if page_obj %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for product in page_obj %}
+            <div class="card hover:shadow-lg transition duration-200 group">
+                <div class="relative">
+                    <a href="{{ product.get_absolute_url }}">
+                        <div class="aspect-square bg-gray-200 overflow-hidden rounded-t-lg">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <i class="fas fa-image text-4xl text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                    
+                    {% if product.featured %}
+                        <span class="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                            <i class="fas fa-star mr-1"></i>
+                            Unggulan
+                        </span>
+                    {% endif %}
+                    
+                    {% if not product.is_in_stock %}
+                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-t-lg">
+                            <span class="text-white font-medium">Stok Habis</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition duration-200">
+                        <a href="{{ product.get_absolute_url }}">{{ product.name|truncatechars:50 }}</a>
+                    </h3>
+                    
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {{ product.description|truncatechars:80 }}
+                    </p>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xl font-bold text-blue-600">
+                            Rp {{ product.price|floatformat:0 }}
+                        </span>
+                        <span class="text-sm text-gray-500">
+                            Stok: {{ product.stock }}
+                        </span>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <a href="{{ product.get_absolute_url }}" 
+                           class="flex-1 btn-secondary text-center text-sm py-2">
+                            <i class="fas fa-eye mr-1"></i>
+                            Lihat
+                        </a>
+                        {% if product.is_in_stock %}
+                            <button onclick="addToCart({{ product.id }})" 
+                                    class="flex-1 btn-primary text-sm py-2">
+                                <i class="fas fa-cart-plus mr-1"></i>
+                                Keranjang
+                            </button>
+                        {% else %}
+                            <button disabled class="flex-1 bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm cursor-not-allowed">
+                                Stok Habis
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-12 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition duration-200">
+                        <i class="fas fa-chevron-left"></i>
+                        Sebelumnya
+                    </a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+                           class="px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition duration-200">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition duration-200">
+                        Selanjutnya
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    {% else %}
+        <!-- No Products -->
+        <div class="text-center py-16">
+            <div class="mx-auto w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-search text-3xl text-gray-400"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Tidak Ada Produk</h2>
+            <p class="text-gray-600 mb-8">Tidak ada produk dalam kategori ini saat ini.</p>
+            <a href="{% url 'store:product_list' %}" class="btn-primary">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Lihat Semua Produk
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function updateSort(sortValue) {
+    const url = new URL(window.location);
+    if (sortValue) {
+        url.searchParams.set('sort', sortValue);
+    } else {
+        url.searchParams.delete('sort');
+    }
+    url.searchParams.delete('page'); // Reset to first page
+    window.location.href = url.toString();
+}
+
+function addToCart(productId) {
+    // Implementation same as in product_list.html
+    if (!{{ request.user.is_authenticated|yesno:"true,false" }}) {
+        window.location.href = '{% url "accounts:login" %}';
+        return;
+    }
+
+    fetch(`/add-to-cart/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'quantity=1'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartCounter(data.cart_total_items);
+            showNotification('Produk berhasil ditambahkan ke keranjang!', 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar Pesanan - Mengtumbas{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Daftar Pesanan</h1>
+        <p class="text-gray-600 mt-2">Riwayat semua pesanan Anda</p>
+    </div>
+
+    {% if orders %}
+        <div class="space-y-6">
+            {% for order in orders %}
+            <div class="card hover:shadow-lg transition duration-200">
+                <div class="p-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                        <!-- Order Info -->
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    Pesanan #{{ order.order_number }}
+                                </h3>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-800
+                                    {% elif order.status == 'processing' %}bg-purple-100 text-purple-800
+                                    {% elif order.status == 'shipped' %}bg-indigo-100 text-indigo-800
+                                    {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                                    {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {% if order.status == 'pending' %}Menunggu Konfirmasi
+                                    {% elif order.status == 'confirmed' %}Dikonfirmasi
+                                    {% elif order.status == 'processing' %}Diproses
+                                    {% elif order.status == 'shipped' %}Dikirim
+                                    {% elif order.status == 'delivered' %}Diterima
+                                    {% elif order.status == 'cancelled' %}Dibatalkan
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                <div>
+                                    <span class="font-medium">Tanggal Pesanan:</span><br>
+                                    {{ order.created_at|date:"d M Y H:i" }}
+                                </div>
+                                <div>
+                                    <span class="font-medium">Total:</span><br>
+                                    <span class="text-lg font-semibold text-blue-600">
+                                        Rp {{ order.total_amount|floatformat:0 }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="font-medium">Jumlah Item:</span><br>
+                                    {{ order.items.count }} item
+                                </div>
+                            </div>
+
+                            <!-- Order Items Preview -->
+                            <div class="mt-4">
+                                <p class="text-sm font-medium text-gray-700 mb-2">Item:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    {% for item in order.items.all|slice:":3" %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ item.quantity }}x {{ item.product.name|truncatechars:20 }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if order.items.count > 3 %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            +{{ order.items.count|add:"-3" }} lainnya
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="mt-6 lg:mt-0 lg:ml-6 flex flex-col sm:flex-row lg:flex-col space-y-2 sm:space-y-0 sm:space-x-3 lg:space-x-0 lg:space-y-2">
+                            <a href="{% url 'store:order_detail' order.order_number %}" 
+                               class="btn-primary text-center">
+                                <i class="fas fa-eye mr-2"></i>
+                                Lihat Detail
+                            </a>
+                            
+                            {% if order.status == 'delivered' %}
+                            <button class="btn-secondary" onclick="alert('Fitur review segera hadir!')">
+                                <i class="fas fa-star mr-2"></i>
+                                Beri Review
+                            </button>
+                            {% endif %}
+                            
+                            {% if order.status == 'pending' or order.status == 'confirmed' %}
+                            <button class="btn-danger" onclick="cancelOrder('{{ order.order_number }}')">
+                                <i class="fas fa-times mr-2"></i>
+                                Batalkan
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination if needed -->
+        <div class="mt-8 text-center">
+            <p class="text-gray-600">Menampilkan {{ orders.count }} pesanan</p>
+        </div>
+    {% else %}
+        <!-- No Orders -->
+        <div class="text-center py-16">
+            <div class="mx-auto w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-receipt text-3xl text-gray-400"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Belum Ada Pesanan</h2>
+            <p class="text-gray-600 mb-8">Anda belum pernah melakukan pesanan. Mulai berbelanja sekarang!</p>
+            <a href="{% url 'store:product_list' %}" class="btn-primary">
+                <i class="fas fa-shopping-bag mr-2"></i>
+                Mulai Belanja
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function cancelOrder(orderNumber) {
+    if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
+        // Add AJAX call to cancel order
+        alert('Fitur pembatalan pesanan sedang dalam pengembangan.');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Toko Online Mengtumbas{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <nav class="mb-6">
+        <div class="flex items-center space-x-2 text-sm text-gray-500">
+            <a href="{% url 'store:home' %}" class="hover:text-blue-600">Beranda</a>
+            <span>/</span>
+            <a href="{% url 'store:product_list' %}" class="hover:text-blue-600">Produk</a>
+            <span>/</span>
+            <a href="{% url 'store:category_detail' product.category.slug %}" class="hover:text-blue-600">{{ product.category.name }}</a>
+            <span>/</span>
+            <span class="text-gray-900">{{ product.name }}</span>
+        </div>
+    </nav>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Gambar Produk -->
+        <div class="space-y-4">
+            <div class="aspect-w-1 aspect-h-1">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-96 object-cover rounded-lg">
+                {% else %}
+                <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span class="text-gray-400 text-xl">Gambar Tidak Tersedia</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Detail Produk -->
+        <div class="space-y-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+                <p class="text-blue-600 font-medium">{{ product.category.name }}</p>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <p class="text-3xl font-bold text-blue-600">Rp{{ product.price|floatformat:0 }}</p>
+                {% if product.stock > 0 %}
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">{{ product.stock }} tersedia</span>
+                {% else %}
+                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">Stok habis</span>
+                {% endif %}
+            </div>
+            
+            <!-- Rating Display -->
+            {% if product.reviews.count > 0 %}
+            <div class="flex items-center space-x-2">
+                <div class="flex items-center">
+                    {% for i in "12345" %}
+                    {% if forloop.counter <= average_rating|floatformat:0 %}
+                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    {% else %}
+                    <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    {% endif %}
+                    {% endfor %}
+                </div>                <span class="text-sm text-gray-600">({{ product.reviews.count }} ulasan{% if product.reviews.count != 1 %}{% endif %})</span>
+            </div>
+            {% endif %}
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Deskripsi</h3>
+                <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
+            </div>
+            
+            <!-- Form Tambah ke Keranjang -->
+            <form id="add-to-cart-form" class="space-y-4">
+                {% csrf_token %}
+                <div class="flex items-center space-x-4">
+                    <label for="quantity" class="text-sm font-medium text-gray-700">Jumlah:</label>
+                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}"
+                           class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                {% if product.stock > 0 %}
+                <button type="button" onclick="addToCart({{ product.id }})"
+                        class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold">
+                    Tambah ke Keranjang
+                </button>
+                {% else %}
+                <button disabled class="w-full bg-gray-400 text-white py-3 px-6 rounded-lg cursor-not-allowed font-semibold">
+                    Stok Habis
+                </button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+      <!-- Bagian Ulasan -->
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold mb-6">Ulasan Pelanggan</h2>
+        
+        {% if user.is_authenticated and has_purchased %}
+        <!-- Form Ulasan -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold mb-4">Tulis Ulasan</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                        {{ review_form.rating }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Komentar</label>
+                        {{ review_form.comment }}
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                        Kirim Ulasan
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+        
+        <!-- Reviews List -->
+        <div class="space-y-6">
+            {% for review in reviews %}
+            <div class="bg-white border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-semibold">{{ review.customer.user.first_name|first|upper }}</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold">{{ review.customer.user.first_name }} {{ review.customer.user.last_name }}</p>
+                            <p class="text-sm text-gray-600">{{ review.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                        <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        {% else %}
+                        <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="text-gray-700">{{ review.comment }}</p>
+            </div>            {% empty %}
+            <div class="text-center py-8">
+                <p class="text-gray-600">Belum ada ulasan. Jadilah yang pertama mengulas produk ini!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function addToCart(productId) {
+    const quantity = document.getElementById('quantity').value;
+    
+    fetch(`/add-to-cart/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            'quantity': quantity
+        })
+    })
+    .then(response => response.json())    .then(data => {
+        if (data.success) {
+            alert('Produk berhasil ditambahkan ke keranjang!');
+            location.reload();
+        } else {
+            alert('Gagal menambahkan produk ke keranjang');
+        }
+    });
+}
+</script>
+{% endblock %}

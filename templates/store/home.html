@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Mengtumbas - Selamat Datang di Toko Online Kami{% endblock title %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                Selamat Datang di <span class="text-yellow-300">Mengtumbas</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 text-blue-100">
+                Temukan produk-produk menakjubkan dengan harga terbaik dan kualitas terjamin
+            </p>
+            <div class="space-x-4">
+                <a href="{% url 'store:product_list' %}" class="inline-block bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg hover:bg-blue-50 transition duration-200">
+                    <i class="fas fa-shopping-bag mr-2"></i>Belanja Sekarang
+                </a>
+                <a href="#featured-products" class="inline-block border-2 border-white text-white font-semibold py-3 px-8 rounded-lg hover:bg-white hover:text-blue-600 transition duration-200">
+                    <i class="fas fa-star mr-2"></i>Produk Unggulan
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Belanja Berdasarkan Kategori</h2>
+            <p class="text-gray-600 text-lg">Jelajahi berbagai kategori produk kami yang lengkap</p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {% for category in categories %}
+            <div class="group">
+                <a href="{{ category.get_absolute_url }}" class="block">
+                    <div class="card hover:shadow-lg transition duration-200 group-hover:scale-105">
+                        <div class="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <i class="fas fa-cube text-4xl text-blue-600"></i>
+                            {% endif %}
+                        </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition duration-200">
+                                {{ category.name }}
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">{{ category.get_product_count }} produk</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">Tidak ada kategori tersedia.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products Section -->
+<section id="featured-products" class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Produk Unggulan</h2>
+            <p class="text-gray-600 text-lg">Produk pilihan terbaik khusus untuk Anda</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for product in featured_products %}
+            <div class="card hover:shadow-lg transition duration-200 group">
+                <div class="relative">
+                    <a href="{{ product.get_absolute_url }}">
+                        <div class="aspect-square bg-gray-200 overflow-hidden">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <i class="fas fa-image text-4xl text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                    
+                    <span class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        <i class="fas fa-star mr-1"></i>Unggulan
+                    </span>
+                    
+                    {% if not product.is_in_stock %}
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <span class="text-white font-medium">Stok Habis</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition duration-200">
+                        <a href="{{ product.get_absolute_url }}">{{ product.name|truncatechars:50 }}</a>
+                    </h3>
+                    
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {{ product.description|truncatechars:80 }}
+                    </p>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xl font-bold text-blue-600">
+                            Rp {{ product.price|floatformat:0 }}
+                        </span>
+                        <span class="text-sm text-gray-500">
+                            Stok: {{ product.stock }}
+                        </span>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <a href="{{ product.get_absolute_url }}" 
+                           class="flex-1 btn-secondary text-center text-sm py-2">
+                            <i class="fas fa-eye mr-1"></i>Lihat
+                        </a>
+                        {% if product.is_in_stock %}
+                            <button onclick="addToCart({{ product.id }})" 
+                                    class="flex-1 btn-primary text-sm py-2">
+                                <i class="fas fa-cart-plus mr-1"></i>Keranjang
+                            </button>
+                        {% else %}
+                            <button disabled class="flex-1 bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm cursor-not-allowed">
+                                Stok Habis
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">Tidak ada produk unggulan tersedia.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Latest Products Section -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Produk Terbaru</h2>
+            <p class="text-gray-600 text-lg">Temukan koleksi terbaru kami</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for product in latest_products %}
+            <div class="card hover:shadow-lg transition duration-200 group">
+                <div class="relative">
+                    <a href="{{ product.get_absolute_url }}">
+                        <div class="aspect-square bg-gray-200 overflow-hidden">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                    <i class="fas fa-image text-gray-400 text-4xl"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-green-400 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
+                            <i class="fas fa-sparkles mr-1"></i>Baru
+                        </span>
+                    </div>
+                    {% if not product.is_in_stock %}
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">Stok Habis</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="p-4">
+                    <div class="mb-2">
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ product.category.name }}</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2 group-hover:text-blue-600 transition duration-200">
+                        <a href="{{ product.get_absolute_url }}">{{ product.name|truncatechars:50 }}</a>
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-3">{{ product.description|truncatechars:80 }}</p>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-2xl font-bold text-blue-600">Rp {{ product.price|floatformat:0 }}</span>
+                        </div>
+                        {% if user.is_authenticated and product.is_in_stock %}
+                        <button onclick="addToCart({{ product.id }})" class="btn-primary text-sm">
+                            <i class="fas fa-cart-plus mr-1"></i>Tambah ke Keranjang
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">Tidak ada produk terbaru tersedia.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="py-16 bg-blue-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Mengapa Memilih Mengtumbas?</h2>
+            <p class="text-gray-600 text-lg">Rasakan pengalaman belanja online terbaik bersama kami</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shipping-fast text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Pengiriman Cepat</h3>
+                <p class="text-gray-600">Pengiriman cepat dan terpercaya sampai ke rumah Anda</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shield-alt text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Belanja Aman</h3>
+                <p class="text-gray-600">Data dan pembayaran Anda selalu terlindungi</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="bg-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-headset text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Layanan 24/7</h3>
+                <p class="text-gray-600">Selalu siap membantu untuk setiap pertanyaan Anda</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

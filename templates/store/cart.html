@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Keranjang Belanja - Mengtumbas{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Keranjang Belanja</h1>
+        <p class="text-gray-600 mt-2">Tinjau dan kelola item dalam keranjang Anda</p>
+    </div>
+
+    {% if cart.items.all %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Cart Items -->
+            <div class="lg:col-span-2">
+                <div class="card">
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold mb-6">Item Keranjang ({{ cart.get_total_items }})</h2>
+                        
+                        {% for item in cart.items.all %}
+                        <div class="flex items-center py-6 border-b border-gray-200 last:border-b-0" id="cart-item-{{ item.id }}">
+                            <div class="flex-shrink-0 w-20 h-20">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover rounded-lg">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex-1 ml-6">
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    <a href="{{ item.product.get_absolute_url }}" class="hover:text-blue-600">
+                                        {{ item.product.name }}
+                                    </a>
+                                </h3>
+                                <p class="text-gray-600 mt-1">{{ item.product.category.name }}</p>
+                                <p class="text-lg font-semibold text-blue-600 mt-2">
+                                    Rp {{ item.product.price|floatformat:0 }}
+                                </p>
+                            </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                <!-- Quantity Controls -->
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="updateCartItem({{ item.id }}, 'decrease')" 
+                                            class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                        <i class="fas fa-minus text-sm"></i>
+                                    </button>
+                                    <span class="w-12 text-center font-medium">{{ item.quantity }}</span>
+                                    <button onclick="updateCartItem({{ item.id }}, 'increase')" 
+                                            class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                        <i class="fas fa-plus text-sm"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Subtotal -->
+                                <div class="w-24 text-right">
+                                    <p class="font-semibold text-gray-900">
+                                        Rp {{ item.get_total_price|floatformat:0 }}
+                                    </p>
+                                </div>
+                                
+                                <!-- Remove Button -->
+                                <button onclick="updateCartItem({{ item.id }}, 'remove')" 
+                                        class="text-red-600 hover:text-red-800 p-2">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="card sticky top-8">
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold mb-6">Ringkasan Pesanan</h2>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Subtotal ({{ cart.get_total_items }} item)</span>
+                                <span class="font-medium">Rp {{ cart.get_total_price|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Ongkos Kirim</span>
+                                <span class="font-medium">Gratis</span>
+                            </div>
+                            <div class="border-t pt-4">
+                                <div class="flex justify-between text-lg font-semibold">
+                                    <span>Total</span>
+                                    <span class="text-blue-600">Rp {{ cart.get_total_price|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <a href="{% url 'store:checkout' %}" class="w-full btn-primary text-center block">
+                                <i class="fas fa-credit-card mr-2"></i>
+                                Lanjut ke Checkout
+                            </a>
+                            <a href="{% url 'store:product_list' %}" class="w-full btn-secondary text-center block">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Lanjut Belanja
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty Cart -->
+        <div class="text-center py-16">
+            <div class="mx-auto w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-shopping-cart text-3xl text-gray-400"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Keranjang Anda Kosong</h2>
+            <p class="text-gray-600 mb-8">Sepertinya Anda belum menambahkan item ke keranjang belanja Anda.</p>
+            <a href="{% url 'store:product_list' %}" class="btn-primary">
+                <i class="fas fa-shopping-bag mr-2"></i>
+                Mulai Belanja
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function updateCartItem(itemId, action) {
+    fetch(`/update-cart-item/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (action === 'remove') {
+                document.getElementById(`cart-item-${itemId}`).remove();
+            }
+            location.reload(); // Reload to update totals
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan. Silakan coba lagi.');
+    });
+}
+</script>
+{% endblock %}
