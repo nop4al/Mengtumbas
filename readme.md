@@ -1,6 +1,6 @@
 # Mengtumbas - Aplikasi E-Commerce
 
-Final Project Pemrograman Berbasis Proyek
+Final Project Pemrograman Berbasis Obyek
 Teknik Informatika - Universitas Negeri Surabaya
 
 ## Deskripsi
