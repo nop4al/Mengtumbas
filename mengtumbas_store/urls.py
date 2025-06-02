@@ -18,11 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+
+# Simple health check view for monitoring
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('', include('store.urls')),
+    path('health/', health_check, name='health_check'),  # Health check endpoint
 ]
 
 # Serve media files in development

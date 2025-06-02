@@ -10,3 +10,6 @@ python manage.py collectstatic --no-input
 
 # Apply database migrations
 python manage.py migrate
+
+# Load sample data if needed
+# python manage.py loaddata store/fixtures/sample_data.json
