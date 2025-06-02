@@ -10,6 +10,7 @@ django-tailwind==4.0.1
 djangorestframework==3.16.0
 sqlparse==0.5.3
 tzdata==2025.2
+pytz==2024.1
 
 # Production dependencies
 whitenoise==6.6.0
