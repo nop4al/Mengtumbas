@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar - MengTumbas{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Buat Akun Baru
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Sudah punya akun?
+            <a href="{% url 'accounts:login' %}" class="font-medium text-primary-600 hover:text-primary-500">
+                Masuk di sini
+            </a>
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form class="space-y-6" action="{% url 'accounts:register' %}" method="post">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Username
+                    </label>
+                    <div class="mt-1">
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Email
+                    </label>
+                    <div class="mt-1">
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Nama Depan
+                    </label>
+                    <div class="mt-1">
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {{ form.first_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Nama Belakang
+                    </label>
+                    <div class="mt-1">
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {{ form.last_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Kata Sandi
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {{ form.password1.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Konfirmasi Kata Sandi
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {{ form.password2.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>                <!-- Syarat dan Ketentuan -->
+                <div class="flex items-center">
+                    <input id="agree-terms" name="agree-terms" type="checkbox" required class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                    <label for="agree-terms" class="ml-2 block text-sm text-gray-900">
+                        Saya setuju dengan <a href="#" class="text-primary-600 hover:text-primary-500">Syarat dan Ketentuan</a>
+                    </label>
+                </div>
+
+                <!-- Tombol Submit -->
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Buat Akun
+                    </button>
+                </div>
+
+                <!-- Error non-field -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {{ form.non_field_errors.0 }}
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

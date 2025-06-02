@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Wishlist - MengTumbas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'frontend/css/product-card-custom.css' %}">
+<style>
+    .wishlist-empty-container {
+        background-color: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 500;
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .category-badge-foreign {
+        color: #3b82f6;
+    }
+    
+    .category-badge-local {
+        color: #16a34a;
+    }
+    
+    .import-info {
+        font-size: 0.7rem;
+        color: #3b82f6;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-6 sm:py-8">
+    <div class="container mx-auto px-3 sm:px-4 max-w-7xl">
+        <div class="text-center mb-8 animate-fade-in">
+            <h1 class="text-3xl font-bold text-gray-900">Wishlist</h1>
+            <p class="text-gray-600 mt-2">Kelola produk yang ingin Anda beli</p>
+        </div>
+        
+        {% if wishlist.products.all %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for product in wishlist.products.all %}
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <a href="{{ product.get_absolute_url }}">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-4xl"></i>
+                                    </div>
+                                {% endif %}
+                            </a>
+                            
+                            <!-- Origin Badge -->
+                            <div class="badge badge-origin {% if product.category.origin_type == 'local' %}badge-local{% else %}badge-foreign{% endif %}">
+                                <i class="fas {% if product.category.origin_type == 'local' %}fa-home{% else %}fa-globe{% endif %} mr-1"></i>
+                                {% if product.category.origin_type == 'local' %}Barang Lokal{% else %}Barang Asing{% endif %}
+                            </div>
+                            
+                            <!-- Stock Badge -->
+                            {% if product.stock > 0 %}
+                            <div class="badge badge-stock">
+                                Stok: {{ product.stock }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="product-info">
+                            <a href="{{ product.get_absolute_url }}" class="product-title">
+                                {{ product.name }}
+                            </a>
+                            
+                            <div class="product-category">
+                                {{ product.category.name }}
+                            </div>
+                            
+                            <div class="price-stock-row">
+                                <div class="product-price">Rp {{ product.price|floatformat:0|intcomma }}</div>
+                                
+                                {% if not product.stock > 0 %}
+                                <div class="product-stock">Stok habis</div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if product.category.origin_type == 'foreign' %}
+                            <div class="import-tax-info">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Termasuk pajak impor & ongkir</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="product-actions">
+                                <div class="flex items-center mb-2">
+                                    <button type="button" class="quantity-btn minus bg-gray-200 px-2 py-1 rounded-l-lg">
+                                        <i class="fas fa-minus text-xs"></i>
+                                    </button>
+                                    <input type="number" id="quantity-{{ product.id }}" value="1" min="1" max="{{ product.stock }}" 
+                                           class="w-10 text-center border border-gray-300 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary" 
+                                           {% if not product.stock > 0 %}disabled{% endif %} readonly>
+                                    <button type="button" class="quantity-btn plus bg-gray-200 px-2 py-1 rounded-r-lg">
+                                        <i class="fas fa-plus text-xs"></i>
+                                    </button>
+                                </div>
+                                <button class="add-to-cart-btn btn-tambah {% if not product.stock > 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                                        data-product-id="{{ product.id }}"
+                                        {% if not product.stock > 0 %}disabled{% endif %}>
+                                    Tambah
+                                </button>
+                                
+                                <a href="{% url 'store:product_detail' product.slug %}?checkout=1" 
+                                   class="btn-beli {% if not product.stock > 0 %}opacity-50 pointer-events-none{% endif %}">
+                                    Beli
+                                </a>
+                                
+                                <form action="{% url 'store:remove_from_wishlist' product.id %}" method="post" class="remove-from-wishlist-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-wishlist" title="Remove from wishlist">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty Wishlist - Styled like the cart empty state -->
+            <div class="flex justify-center items-center min-h-[50vh] py-8">
+                <div class="wishlist-empty-container max-w-lg mx-auto w-full">
+                    <div class="flex justify-center">
+                        <div class="text-red-400 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Wishlist kamu kosong</h2>
+                    <p class="text-gray-600 mb-8">Yuk, tambahkan barang-barang menarik ke wishlist kamu!</p>
+                    <a href="{% url 'store:home' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium px-6 sm:px-8 py-3 rounded-lg transition-colors inline-flex items-center">
+                        <i class="fas fa-shopping-bag mr-2"></i> Jelajahi Produk
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle remove from wishlist forms
+    const removeFromWishlistForms = document.querySelectorAll('.remove-from-wishlist-form');
+    removeFromWishlistForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const url = this.getAttribute('action');
+            const productElement = this.closest('.product-card');
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the product from the DOM with animation
+                    productElement.style.opacity = '0';
+                    productElement.style.transform = 'scale(0.9)';
+                    
+                    setTimeout(() => {
+                        productElement.remove();
+                        
+                        // If no more products, show empty message
+                        const remainingProducts = document.querySelectorAll('.product-card').length;
+                        if (remainingProducts === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                    
+                    // Update wishlist count in the header if needed
+                    const wishlistCountElement = document.getElementById('wishlist-count');
+                    if (wishlistCountElement) {
+                        wishlistCountElement.textContent = data.wishlist_count;
+                    }
+                } else {
+                    showNotification(data.message || 'Gagal menghapus dari wishlist', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+            });
+        });
+    });
+    
+    // Set up quantity buttons
+    document.querySelectorAll('.quantity-btn.minus').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.closest('.flex').querySelector('input').id.split('-')[1];
+            const quantityInput = document.getElementById('quantity-' + productId);
+            let currentValue = parseInt(quantityInput.value) || 1;
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
+        });
+    });
+    
+    document.querySelectorAll('.quantity-btn.plus').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.closest('.flex').querySelector('input').id.split('-')[1];
+            const quantityInput = document.getElementById('quantity-' + productId);
+            const maxStock = parseInt(quantityInput.getAttribute('max')) || 100;
+            let currentValue = parseInt(quantityInput.value) || 1;
+            if (currentValue < maxStock) {
+                quantityInput.value = currentValue + 1;
+            }
+        });
+    });
+    
+    // Set up add to cart buttons
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const quantityInput = document.getElementById('quantity-' + productId);
+            const quantity = parseInt(quantityInput.value) || 1;
+            
+            addToCart(productId, quantity);
+        });
+    });
+    
+    // Add to cart function
+    function addToCart(productId, quantity) {
+        fetch(`/store/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count
+                if (document.getElementById('cart-count')) {
+                    document.getElementById('cart-count').textContent = data.cart_count;
+                }
+                
+                // Show success notification
+                showNotification('Produk berhasil ditambahkan ke keranjang', 'success');
+            } else {
+                showNotification(data.message || 'Gagal menambahkan produk ke keranjang', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+    
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+        // Check if notification container exists
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed bottom-4 right-4 z-50 flex flex-col space-y-2';
+            document.body.appendChild(container);
+        }
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `px-4 py-3 rounded-lg shadow-lg flex items-center ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        } transform transition-all duration-300 translate-y-0 opacity-100`;
+        
+        // Icon
+        const icon = document.createElement('i');
+        icon.className = `fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2`;
+        notification.appendChild(icon);
+        
+        // Message
+        const text = document.createElement('span');
+        text.textContent = message;
+        notification.appendChild(text);
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}

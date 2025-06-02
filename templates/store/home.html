@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load store_filters %}
+
+{% block title %}MengTumbas - Toko Online Terlengkap{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'frontend/css/home.css' %}">
+<link rel="stylesheet" href="{% static 'frontend/css/hero.css' %}">
+<link rel="stylesheet" href="{% static 'frontend/css/product-card-custom.css' %}">
+<style>
+    .centered-section {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .section-title h2 {
+        margin: 0 auto;
+        display: inline-block;
+    }
+    
+    .section-title a {
+        display: block;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+    
+    .category-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .category-header h3 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .category-header a {
+        display: inline-block;
+    }
+    
+    @media (max-width: 640px) {
+        .section-title {
+            padding-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner Section -->
+<section class="hero-section">
+    <div class="hero-carousel">
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <!-- Banner Slides -->
+                <div class="swiper-slide">
+                    <img src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                         alt="Promo Terbaru">
+                    <div class="hero-overlay">
+                        <div class="hero-content">
+                            <h2>Promo Spesial</h2>
+                            <p>Dapatkan diskon hingga 70% untuk produk pilihan</p>
+                            <a href="{% url 'store:product_list' %}" class="hero-button">
+                                Belanja Sekarang
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section centered-section">
+    <div class="section-title">
+        <h2>Jelajahi Kategori</h2>
+    </div>
+    
+    <!-- Barang Lokal -->
+    <div class="mb-6">
+        <div class="category-header">
+            <h3 class="text-lg sm:text-xl font-semibold text-gray-800 flex items-center justify-center">
+                <i class="fas fa-home text-green-600 mr-2"></i>
+                Barang Lokal
+            </h3>
+            <a href="{% url 'store:local_products' %}" class="text-primary hover:text-green-600 text-sm">Lihat Semua</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            {% for category in local_categories %}
+            <a href="{% url 'store:local_products' %}?category={{ category.slug }}" class="category-card bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center border-l-4 border-green-500">
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-16 h-16 object-contain mb-3">
+                {% else %}
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-home text-green-600 text-xl"></i>
+                </div>
+                {% endif %}
+                <h4 class="text-sm font-medium text-center text-gray-800">{{ category.name }}</h4>
+                <p class="text-xs text-gray-500 mt-1">{{ category.get_all_products_count }} produk</p>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">Belum ada kategori barang lokal.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Barang Asing -->
+    <div class="mb-6">
+        <div class="category-header">
+            <h3 class="text-lg sm:text-xl font-semibold text-gray-800 flex items-center justify-center">
+                <i class="fas fa-globe text-blue-600 mr-2"></i>
+                Barang Asing
+            </h3>
+            <a href="{% url 'store:foreign_products' %}" class="text-primary hover:text-green-600 text-sm">Lihat Semua</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            {% for category in foreign_categories %}
+            <a href="{% url 'store:foreign_products' %}?category={{ category.slug }}" class="category-card bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center border-l-4 border-blue-500">
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-16 h-16 object-contain mb-3">
+                {% else %}
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-globe text-blue-600 text-xl"></i>
+                </div>
+                {% endif %}
+                <h4 class="text-sm font-medium text-center text-gray-800">{{ category.name }}</h4>
+                <p class="text-xs text-gray-500 mt-1">{{ category.get_all_products_count }} produk</p>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">Belum ada kategori barang asing.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products Section -->
+<section class="featured-section mt-8 centered-section">
+    <div class="section-title">
+        <h2 class="text-xl sm:text-2xl font-bold">Produk Unggulan</h2>
+    </div>
+    
+    <!-- Featured Products Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {% for product in featured_products %}
+        {% include 'store/partials/product_card.html' with product=product %}
+        {% empty %}
+        <div class="col-span-full text-center py-8">
+            <p class="text-gray-500 text-base sm:text-lg">Tidak ada produk unggulan saat ini.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- New Products Section -->
+<section class="new-products-section mt-8 centered-section">
+    <div class="section-title">
+        <h2 class="text-xl sm:text-2xl font-bold">Produk Terbaru</h2>
+    </div>
+    
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {% for product in latest_products %}
+        {% include 'store/partials/product_card.html' with product=product %}
+        {% empty %}
+        <div class="col-span-full text-center py-8">
+            <p class="text-gray-500 text-base sm:text-lg">Tidak ada produk terbaru saat ini.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Indonesian Rupiah formatting function
+    function formatRupiah(amount) {
+        const number = Math.floor(amount);
+        return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Format all price elements on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const priceElements = document.querySelectorAll('[data-price]');
+        priceElements.forEach(element => {
+            const price = parseFloat(element.getAttribute('data-price'));
+            if (!isNaN(price)) {
+                element.textContent = formatRupiah(price);
+            }
+        });
+    });
+
+    // Toggle wishlist function
+    function toggleWishlist(productId, buttonElement) {
+        const isInWishlist = buttonElement.getAttribute('data-in-wishlist') === 'true';
+        const url = isInWishlist ? 
+            `/store/remove-from-wishlist/${productId}/` : 
+            `/store/add-to-wishlist/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update button state
+                const icon = buttonElement.querySelector('.wishlist-icon');
+                if (isInWishlist) {
+                    icon.classList.replace('fas', 'far');
+                    buttonElement.setAttribute('data-in-wishlist', 'false');
+                    showNotification('Produk dihapus dari wishlist', 'success');
+                } else {
+                    icon.classList.replace('far', 'fas');
+                    buttonElement.setAttribute('data-in-wishlist', 'true');
+                    showNotification('Produk ditambahkan ke wishlist', 'success');
+                }
+            } else {
+                showNotification(data.message || 'Gagal memperbarui wishlist', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+
+    // Add to cart function
+    function addToCart(productId, quantity) {
+        fetch(`/store/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count if needed
+                if (document.getElementById('cart-count')) {
+                    document.getElementById('cart-count').textContent = data.cart_count;
+                }
+                
+                // Show success notification
+                showNotification('Produk berhasil ditambahkan ke keranjang', 'success');
+            } else {
+                showNotification(data.message || 'Gagal menambahkan produk ke keranjang', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Show notification
+    function showNotification(message, type) {
+        // Check if notification container exists
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed bottom-4 right-4 z-50 flex flex-col space-y-2';
+            document.body.appendChild(container);
+        }
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `px-4 py-3 rounded-lg shadow-lg flex items-center ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        } transform transition-all duration-300 translate-y-0 opacity-100`;
+        
+        // Icon
+        const icon = document.createElement('i');
+        icon.className = `fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2`;
+        notification.appendChild(icon);
+        
+        // Message
+        const text = document.createElement('span');
+        text.textContent = message;
+        notification.appendChild(text);
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+</script>
+{% endblock %}

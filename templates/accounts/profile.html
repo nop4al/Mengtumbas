@@ -1,0 +1,898 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Profil Saya - MengTumbas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-section {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        color: #0a0a0a;
+    }
+    
+    .profile-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+        border-bottom: 1px solid #f3f4f6;
+        background: white;
+        color: #0a0a0a;
+    }
+    
+    @media (max-width: 768px) {
+        .stat-value,
+        .stat-label,
+        .profile-name,
+        .profile-email,
+        .profile-info,
+        .profile-meta {
+            color: #0a0a0a !important;
+            font-weight: 500;
+        }
+        
+        .text-gray-500,
+        .text-gray-600,
+        .text-gray-700 {
+            color: #0a0a0a !important;
+        }
+        
+        .nav-tab:not(.active) {
+            color: #0a0a0a !important;
+        }
+    }
+    
+    .profile-avatar {
+        width: 8rem;
+        height: 8rem;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #03ac0e;
+    }
+    
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        text-align: center;
+        padding: 1.5rem 1rem;
+    }
+    
+    .nav-tab {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        cursor: pointer;
+        margin-right: 0.5rem;
+    }
+    
+    .nav-tab.active {
+        background-color: #03ac0e;
+        color: white !important;
+    }
+    
+    .nav-tab:not(.active):hover {
+        background-color: #f3f4f6;
+        color: #03ac0e !important;
+    }
+    
+    .order-card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #f3f4f6;
+        padding: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .order-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .tab-content .tab-pane {
+        display: none;
+    }
+    
+    .tab-content .tab-pane.active {
+        display: block !important;
+    }
+    
+    /* Define the bg-primary and text-primary classes that might be missing */
+    .bg-primary {
+        background-color: #03ac0e !important;
+    }
+    
+    .text-primary {
+        color: #03ac0e !important;
+    }
+    
+    /* Fix for tabs on mobile */
+    .tabs-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        width: 100%;
+    }
+    
+    .tabs-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+    
+    .tabs-wrapper {
+        display: flex;
+        min-width: max-content;
+    }
+    
+    /* Slider styles */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #10b981;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    /* Action buttons styling */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .action-btn i {
+        margin-right: 0.5rem;
+    }
+    
+    .action-btn.primary {
+        background-color: #03ac0e;
+        color: white;
+    }
+    
+    .action-btn.primary:hover {
+        background-color: #039d0c;
+    }
+    
+    .action-btn.secondary {
+        background-color: #f3f4f6;
+        color: #4b5563;
+    }
+    
+    .action-btn.secondary:hover {
+        background-color: #e5e7eb;
+    }
+    
+    .action-btn.danger {
+        background-color: #fee2e2;
+        color: #ef4444;
+    }
+    
+    .action-btn.danger:hover {
+        background-color: #fecaca;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-6 sm:py-8">
+    <div class="container mx-auto px-3 sm:px-4 max-w-4xl">
+        <!-- Profile Header -->
+        <div class="bg-white rounded-lg shadow-sm mb-8">            
+            <div class="flex flex-col items-center p-8 border-b border-gray-100">
+                <div class="bg-green-500 w-32 h-32 rounded-full flex items-center justify-center">
+                    <span class="text-white text-3xl font-bold">{{ user.first_name|first|default:user.username|first|upper }}</span>
+                </div>
+                <h1 class="text-2xl font-bold mt-4">{{ user.get_full_name|default:user.username }}</h1>
+                <p class="text-gray-500">Member sejak {{ user.date_joined|date:"F Y" }}</p>
+                <div class="mt-4">
+                    <a href="{% url 'accounts:profile_edit' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-edit"></i> Edit Profil
+                    </a>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-4 text-center p-6 border-b border-gray-100">
+                <div>
+                    <p class="text-2xl font-bold text-green-500">{{ orders_count|default:"0" }}</p>
+                    <p class="text-gray-500">Total Pesanan</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-green-500">{{ reviews_count|default:"0" }}</p>
+                    <p class="text-gray-500">Ulasan</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-green-500">{{ wishlist_count|default:"0" }}</p>
+                    <p class="text-gray-500">Wishlist</p>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-100">
+                <div class="flex overflow-x-auto p-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div style="display: inline-block; padding: 10px 20px; cursor: pointer; border-bottom: 3px solid #03ac0e; color: #03ac0e; font-weight: 500;" onclick="openTab('orders')">
+                        <i class="fas fa-shopping-bag"></i> Pesanan
+                    </div>
+                    <div style="display: inline-block; padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent;" onclick="openTab('address')">
+                        <i class="fas fa-map-marker-alt"></i> Alamat
+                    </div>
+                    <div style="display: inline-block; padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent;" onclick="openTab('reviews')">
+                        <i class="fas fa-star"></i> Ulasan
+                    </div>
+                    <div style="display: inline-block; padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent;" onclick="openTab('wishlist')">
+                        <i class="fas fa-heart"></i> Wishlist
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content -->
+        <div>
+            <!-- Orders Tab -->
+            <div id="orders" style="display: block;">
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Pesanan Saya</h2>
+                    <div class="text-sm">
+                        <select id="orderStatusFilter" class="border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="all">Semua Pesanan</option>
+                            <option value="pending">Menunggu Pembayaran</option>
+                            <option value="processing">Diproses</option>
+                            <option value="shipped">Dikirim</option>
+                            <option value="delivered">Selesai</option>
+                            <option value="cancelled">Dibatalkan</option>
+                        </select>
+                    </div>
+                </div>
+                
+                {% if orders %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for order in orders %}
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <!-- Order header -->
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <span class="text-sm text-gray-500">Order #{{ order.order_number }}</span>
+                                    <p class="text-sm text-gray-500">{{ order.created_at|date:"d M Y, H:i" }}</p>
+                                </div>
+                                <div>
+                                    {% if order.status == 'pending' %}
+                                        <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                            <i class="fas fa-clock mr-1.5"></i>
+                                            <span>Menunggu Pembayaran</span>
+                                        </span>
+                                    {% elif order.status == 'processing' %}
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                            <i class="fas fa-cog mr-1.5"></i>
+                                            <span>Diproses</span>
+                                        </span>
+                                    {% elif order.status == 'shipped' %}
+                                        <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                            <i class="fas fa-truck mr-1.5"></i>
+                                            <span>Dikirim</span>
+                                        </span>
+                                    {% elif order.status == 'delivered' %}
+                                        <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                            <i class="fas fa-check-circle mr-1.5"></i>
+                                            <span>Selesai</span>
+                                        </span>
+                                    {% elif order.status == 'cancelled' %}
+                                        <span class="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                            <i class="fas fa-times-circle mr-1.5"></i>
+                                            <span>Dibatalkan</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Order items -->
+                            <div class="border-t border-b border-gray-100 py-3 my-3">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        {% with first_item=order.items.first %}
+                                            {% if first_item.product.image %}
+                                                <img src="{{ first_item.product.image.url }}" alt="{{ first_item.product.name }}" class="w-20 h-20 object-cover rounded-lg order-item" data-item-id="{{ first_item.id }}">
+                                            {% else %}
+                                                <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center order-item" data-item-id="{{ first_item.id }}">
+                                                    <i class="fas fa-image text-gray-400"></i>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="ml-4 flex-grow">
+                                        <p class="font-medium text-gray-900">{{ order.items.first.product.name }}</p>
+                                        <p class="text-sm text-gray-500">{{ order.items.first.quantity }} x Rp {{ order.items.first.price|floatformat:0|intcomma }}</p>
+                                        {% if order.items.count > 1 %}
+                                            <p class="text-xs text-gray-500 mt-1">+{{ order.items.count|add:"-1" }} produk lainnya</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-auto">
+                                        <p class="font-bold text-lg text-green-500">Rp {{ order.total_amount|floatformat:0|intcomma }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Order actions -->
+                            <div class="flex justify-end space-x-3">
+                                <a href="{% url 'store:order_detail' order.order_number %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-sm">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
+                                
+                                {% if order.status == 'delivered' %}
+                                <a href="#" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm review-order" data-order-id="{{ order.id }}">
+                                    <i class="fas fa-star"></i> Nilai Produk
+                                </a>
+                                {% endif %}
+                                
+                                {% if order.status == 'pending' %}
+                                <form method="post" action="{% url 'store:cancel_order' order.order_number %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1 rounded-lg text-sm">
+                                        <i class="fas fa-times"></i> Batalkan
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-xl shadow-sm p-10 text-center">
+                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-shopping-bag text-3xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Belum Ada Pesanan</h3>
+                        <p class="text-gray-600 mb-6">Anda belum melakukan pembelian apapun.</p>
+                        <a href="{% url 'store:home' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                            Mulai Belanja
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Address Tab -->
+            <div id="address" style="display: none;">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold">Alamat Pengiriman</h2>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    {% if user.customer.address %}
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-2">Alamat Utama</h3>
+                                <p class="text-gray-600 mb-1">{{ user.get_full_name|default:user.username }}</p>
+                                <p class="text-gray-600 mb-1">{{ user.customer.phone|default:"Nomor telepon belum diatur" }}</p>
+                                <p class="text-gray-600">{{ user.customer.address }}</p>
+                            </div>
+                            <a href="{% url 'accounts:profile_edit' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-map-marker-alt text-2xl text-gray-400"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Belum Ada Alamat</h3>
+                            <p class="text-gray-600 mb-4">Tambahkan alamat pengiriman untuk memudahkan checkout.</p>
+                            <a href="{% url 'accounts:profile_edit' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                Tambah Alamat
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Reviews Tab -->
+            <div id="reviews" style="display: none;">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold">Ulasan Saya</h2>
+                </div>
+                
+                {% if reviews %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for review in reviews %}
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <!-- Review header -->
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <span class="text-sm text-gray-500">Ulasan untuk</span>
+                                    <p class="font-medium">{{ review.product.name }}</p>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star text-yellow-400"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-gray-300"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <p class="text-xs text-gray-500 text-right mt-1">{{ review.created_at|date:"d M Y" }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Review content -->
+                            <div class="border-t border-b border-gray-100 py-3 my-3">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        {% if review.product.image %}
+                                            <img src="{{ review.product.image.url }}" alt="{{ review.product.name }}" class="w-20 h-20 object-cover rounded-lg">
+                                        {% else %}
+                                            <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-image text-gray-400"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4 flex-grow">
+                                        <p class="text-gray-700">{{ review.comment }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Review actions -->
+                            <div class="flex justify-end space-x-3">
+                                <a href="{% url 'store:product_detail' review.product.slug %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-sm">
+                                    <i class="fas fa-eye"></i> Lihat Produk
+                                </a>
+                                <a href="{% url 'accounts:edit_review' review.id %}" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm">
+                                    <i class="fas fa-edit"></i> Edit Ulasan
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-xl shadow-sm p-10 text-center">
+                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-star text-3xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Belum Ada Ulasan</h3>
+                        <p class="text-gray-600 mb-6">Berikan ulasan untuk produk yang telah Anda beli.</p>
+                        <a href="{% url 'store:home' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                            Mulai Belanja
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Wishlist Tab -->
+            <div id="wishlist" style="display: none;">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold">Wishlist Saya</h2>
+                </div>
+                
+                {% if wishlist_products %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for product in wishlist_products %}
+                            <div class="bg-white rounded-lg shadow-sm p-6 flex gap-4 items-center relative">
+                                <a href="{{ product.get_absolute_url }}">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-20 h-20 rounded-lg object-cover border border-gray-100 flex-shrink-0">
+                                    {% else %}
+                                        <div class="w-20 h-20 rounded-lg border border-gray-100 flex-shrink-0 bg-gray-100 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                    {% endif %}
+                                </a>
+                                <div class="flex-1">
+                                    <a href="{{ product.get_absolute_url }}" class="font-semibold text-gray-800 hover:text-green-500 text-lg transition">{{ product.name }}</a>
+                                    <div class="text-green-500 font-bold mb-1">Rp {{ product.price|floatformat:0|intcomma }}</div>
+                                    <div class="text-gray-600 text-sm">
+                                        {% if product.stock > 0 %}
+                                            <span class="text-green-500">Tersedia</span>
+                                        {% else %}
+                                            <span class="text-red-500">Habis</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <form action="{% url 'store:add_to_cart' product.id %}" method="post" class="add-to-cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="w-full px-3 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition text-sm flex items-center justify-center gap-1">
+                                            <i class="fas fa-shopping-cart"></i> Tambah ke Keranjang
+                                        </button>
+                                    </form>
+                                    <form action="{% url 'store:remove_from_wishlist' product.id %}" method="post" class="remove-from-wishlist-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full px-3 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-xl shadow-sm p-10 text-center">
+                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-heart text-3xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Wishlist Kosong</h3>
+                        <p class="text-gray-600 mb-6">Simpan produk favorit Anda di wishlist.</p>
+                        <a href="{% url 'store:home' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                            Jelajahi Produk
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-md w-full p-6 max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">Pilih Produk untuk Diulas</h3>
+            <button id="closeReviewModal" class="text-gray-500 hover:text-gray-700 text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="reviewModalContent" class="space-y-4">
+            <!-- Content will be populated by JavaScript -->
+        </div>
+        <div class="mt-6 text-center">
+            <p class="text-gray-500 text-sm">Pilih produk yang ingin Anda beri ulasan</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function openTab(tabName) {
+    // Hide all tabs
+    document.getElementById('orders').style.display = 'none';
+    document.getElementById('address').style.display = 'none';
+    document.getElementById('reviews').style.display = 'none';
+    document.getElementById('wishlist').style.display = 'none';
+    
+    // Show the selected tab
+    document.getElementById(tabName).style.display = 'block';
+    
+    // Update tab styles
+    var tabs = document.querySelectorAll('[onclick^="openTab"]');
+    tabs.forEach(function(tab) {
+        tab.style.borderBottom = '3px solid transparent';
+        tab.style.color = '#4b5563';
+    });
+    
+    // Highlight the active tab
+    event.currentTarget.style.borderBottom = '3px solid #03ac0e';
+    event.currentTarget.style.color = '#03ac0e';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tabs
+    const tabButtons = document.querySelectorAll('.nav-tab');
+    const tabContents = document.querySelectorAll('.tab-pane');
+    
+    // Function to switch tabs
+    function switchTab(tabId) {
+        // Hide all tab contents
+        document.getElementById('orders').style.display = 'none';
+        document.getElementById('address').style.display = 'none';
+        document.getElementById('reviews').style.display = 'none';
+        document.getElementById('wishlist').style.display = 'none';
+        
+        // Show the selected tab
+        document.getElementById(tabId).style.display = 'block';
+        
+        // Update tab styles
+        var tabs = document.querySelectorAll('[onclick^="openTab"]');
+        tabs.forEach(function(tab) {
+            tab.style.borderBottom = '3px solid transparent';
+            tab.style.color = '#4b5563';
+        });
+        
+        // Highlight the active tab
+        event.currentTarget.style.borderBottom = '3px solid #03ac0e';
+        event.currentTarget.style.color = '#03ac0e';
+    }
+    
+    // Review modal functionality
+    const modal = document.getElementById('reviewModal');
+    const modalContent = document.getElementById('reviewModalContent');
+    const closeBtn = document.getElementById('closeReviewModal');
+    
+    // Get all review buttons
+    const reviewButtons = document.querySelectorAll('.review-order');
+    
+    // Add click event to all review buttons
+    reviewButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const orderId = this.getAttribute('data-order-id');
+            
+            // Clear previous content
+            modalContent.innerHTML = '';
+            
+            // Get all items from this order
+            const items = [];
+            {% for order in orders %}
+            if ("{{ order.id }}" == orderId) {
+                {% for item in order.items.all %}
+                items.push({
+                    id: {{ item.id }},
+                    name: "{{ item.product.name|escapejs }}",
+                    image: "{% if item.product.image %}{{ item.product.image.url }}{% endif %}"
+                });
+                {% endfor %}
+            }
+            {% endfor %}
+            
+            // Create content for each item
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex items-center justify-between border-b border-gray-100 pb-4 mb-4';
+                
+                let imageHtml = '';
+                if (item.image) {
+                    imageHtml = `<img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg">`;
+                } else {
+                    imageHtml = `<div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                 </div>`;
+                }
+                
+                itemElement.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 mr-4">
+                            ${imageHtml}
+                        </div>
+                        <div>
+                            <p class="font-medium">${item.name}</p>
+                        </div>
+                    </div>
+                    <a href="/accounts/review/add/${item.id}/" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm">
+                        <i class="fas fa-star"></i> Beri Nilai
+                    </a>
+                `;
+                
+                modalContent.appendChild(itemElement);
+            });
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+        });
+    });
+    
+    // Close the modal when clicking the close button
+    closeBtn.addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+    
+    // Close the modal when clicking outside of it
+    window.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+    
+    // Handle add to cart forms in wishlist
+    const addToCartForms = document.querySelectorAll('.add-to-cart-form');
+    addToCartForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const url = this.getAttribute('action');
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    alert(data.message);
+                    // Update cart count in the header if needed
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement) {
+                        cartCountElement.textContent = data.cart_count;
+                    }
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+    
+    // Handle remove from wishlist forms
+    const removeFromWishlistForms = document.querySelectorAll('.remove-from-wishlist-form');
+    removeFromWishlistForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const url = this.getAttribute('action');
+            const productElement = this.closest('.bg-white');
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the product from the DOM
+                    productElement.remove();
+                    
+                    // If no more products, show empty message
+                    const remainingProducts = document.querySelectorAll('#wishlist .grid > div').length;
+                    if (remainingProducts === 0) {
+                        const emptyWishlist = `
+                            <div class="bg-white rounded-xl shadow-sm p-10 text-center">
+                                <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                                    <i class="fas fa-heart text-3xl text-gray-400"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">Wishlist Kosong</h3>
+                                <p class="text-gray-600 mb-6">Simpan produk favorit Anda di wishlist.</p>
+                                <a href="{% url 'store:home' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                    Jelajahi Produk
+                                </a>
+                            </div>
+                        `;
+                        const gridElement = document.querySelector('#wishlist .grid');
+                        if (gridElement) {
+                            gridElement.outerHTML = emptyWishlist;
+                        }
+                    }
+                    
+                    // Update wishlist count in the header if needed
+                    const wishlistCountElement = document.getElementById('wishlist-count');
+                    if (wishlistCountElement) {
+                        wishlistCountElement.textContent = data.wishlist_count;
+                    }
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+    
+    // Function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Order status filter functionality
+    const orderStatusFilter = document.getElementById('orderStatusFilter');
+    if (orderStatusFilter) {
+        orderStatusFilter.addEventListener('change', function() {
+            const selectedStatus = this.value;
+            const orderCards = document.querySelectorAll('#orders .grid > div');
+            
+            orderCards.forEach(card => {
+                const statusElement = card.querySelector('span[class^="bg-"]');
+                
+                if (selectedStatus === 'all') {
+                    card.style.display = 'block';
+                    return;
+                }
+                
+                let cardStatus = '';
+                if (statusElement.classList.contains('bg-yellow-100')) cardStatus = 'pending';
+                else if (statusElement.classList.contains('bg-blue-100')) cardStatus = 'processing';
+                else if (statusElement.classList.contains('bg-indigo-100')) cardStatus = 'shipped';
+                else if (statusElement.classList.contains('bg-green-100')) cardStatus = 'delivered';
+                else if (statusElement.classList.contains('bg-red-100')) cardStatus = 'cancelled';
+                
+                if (cardStatus === selectedStatus) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Show "no orders" message if no orders match the filter
+            const visibleOrders = [...orderCards].filter(card => card.style.display !== 'none');
+            const noOrdersMessage = document.querySelector('#orders .bg-white.rounded-xl.shadow-sm.p-10.text-center');
+            const ordersGrid = document.querySelector('#orders .grid');
+            
+            if (visibleOrders.length === 0 && ordersGrid) {
+                // Create and show "no orders" message for the filter
+                if (!noOrdersMessage) {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'bg-white rounded-xl shadow-sm p-10 text-center filter-no-results';
+                    emptyMessage.innerHTML = `
+                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-filter text-3xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Tidak Ada Pesanan</h3>
+                        <p class="text-gray-600 mb-6">Tidak ada pesanan dengan status yang dipilih.</p>
+                    `;
+                    ordersGrid.style.display = 'none';
+                    ordersGrid.parentNode.insertBefore(emptyMessage, ordersGrid.nextSibling);
+                }
+            } else {
+                // Remove the "no orders" message if orders are visible
+                const filterNoResults = document.querySelector('.filter-no-results');
+                if (filterNoResults) {
+                    filterNoResults.remove();
+                }
+                if (ordersGrid) {
+                    ordersGrid.style.display = 'grid';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Produk - MengTumbas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'frontend/css/product-card-custom.css' %}">
+<style>
+    .aspect-w-1 {
+        position: relative;
+        padding-bottom: 100%;
+    }
+    
+    .aspect-w-1 img, 
+    .aspect-w-1 > div {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+        object-fit: cover;
+    }
+    
+    .active-category {
+        background-color: #03ac0e;
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-6">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Sidebar Filters -->
+            <div class="lg:w-1/4">
+                <div class="bg-white rounded-xl shadow-sm p-6 sticky top-6">
+                    <h3 class="text-lg font-semibold mb-4">Filter Kategori</h3>
+                    
+                    <!-- All Products Link -->
+                    <div class="mb-4">
+                        <a href="{% url 'store:product_list' %}" 
+                           class="block px-4 py-2 rounded-lg {% if not category_id %}active-category{% else %}text-gray-900 hover:bg-gray-100{% endif %} transition-colors cursor-pointer">
+                            <i class="fas fa-th-large mr-2"></i>
+                            <span class="font-medium">Semua Kategori</span>
+                        </a>
+                    </div>
+
+                    <!-- Filter Sidebar -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 category-sidebar">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">Kategori</h2>
+                        
+                        <!-- Categories List -->
+                        <div class="space-y-2">
+                            {% for category in categories %}
+                            {% if category.parent is None %}
+                            <div class="category-item">
+                                <a href="{% url 'store:product_list' %}?category={{ category.id }}" 
+                                   class="block px-4 py-2 rounded-lg {% if category_id == category.id|stringformat:'s' %}active-category{% else %}text-gray-900 hover:bg-gray-100{% endif %} transition-colors cursor-pointer">
+                                    {{ category.name }}
+                                    <span class="float-right text-xs {% if category_id == category.id|stringformat:'s' %}text-white{% else %}text-gray-500{% endif %}">
+                                        ({{ category.get_all_products_count }})
+                                    </span>
+                                </a>
+                                
+                                <!-- Subcategories -->
+                                {% if category.subcategories.all %}
+                                <div class="ml-4 mt-2 space-y-1">
+                                    {% for subcategory in category.subcategories.all %}
+                                    <a href="{% url 'store:product_list' %}?category={{ subcategory.id }}" 
+                                       class="block px-3 py-1 text-sm rounded-md {% if category_id == subcategory.id|stringformat:'s' %}active-category{% else %}text-gray-900 hover:bg-gray-100{% endif %} transition-colors cursor-pointer">
+                                        {{ subcategory.name }}
+                                        <span class="float-right text-xs {% if category_id == subcategory.id|stringformat:'s' %}text-white{% else %}text-gray-500{% endif %}">
+                                            ({{ subcategory.get_product_count }})
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Sort Options -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="font-medium mb-3">Urutkan</h4>
+                            <select onchange="applySorting(this.value)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+                                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Nama A-Z</option>
+                                <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Harga Terendah</option>
+                                <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Harga Tertinggi</option>
+                                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Terbaru</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Price Filter -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="font-medium mb-3">Rentang Harga</h4>
+                            <form method="get" action="{% url 'store:product_list' %}" class="space-y-4">
+                                {% if category_id %}
+                                <input type="hidden" name="category" value="{{ category_id }}">
+                                {% endif %}
+                                {% if sort_by %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                {% endif %}
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-sm text-gray-600">Min</label>
+                                        <input type="number" name="min_price" value="{{ min_price }}" 
+                                               placeholder="Rp 0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-sm text-gray-600">Max</label>
+                                        <input type="number" name="max_price" value="{{ max_price }}" 
+                                               placeholder="Rp 1000000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors cursor-pointer">
+                                    <i class="fas fa-filter mr-2"></i>Terapkan Filter
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="lg:w-3/4">
+                <!-- Header with results info -->
+                <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600">
+                                Menampilkan {{ page_obj.start_index }}-{{ page_obj.end_index }} dari {{ page_obj.paginator.count }} produk
+                                {% if selected_category %}
+                                    dalam kategori "<strong class="text-primary">{{ selected_category.name }}</strong>"
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">Tampilan:</span>
+                            <button class="p-2 bg-primary text-white rounded-md" title="Grid View">
+                                <i class="fas fa-th"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {% for product in page_obj %}
+                    {% include 'store/partials/product_card.html' with product=product %}
+                    {% empty %}
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-gray-400 mb-4">
+                            <svg class="mx-auto h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada produk ditemukan</h3>
+                        <p class="text-gray-500">Coba sesuaikan kriteria pencarian Anda</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex items-center space-x-2">
+                        {% if page_obj.has_previous %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+                           class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="px-4 py-2 bg-primary text-white rounded-lg">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">{{ num }}</a>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" 
+                           class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function applySorting(sortValue) {
+        // Get current URL
+        const url = new URL(window.location.href);
+        
+        // Set the sort parameter
+        url.searchParams.set('sort', sortValue);
+        
+        // Redirect to the new URL
+        window.location.href = url.toString();
+    }
+
+    function addToCart(productId, quantity) {
+        fetch(`/store/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count
+                if (document.getElementById('cart-count')) {
+                    document.getElementById('cart-count').textContent = data.cart_count;
+                }
+                
+                // Show success notification
+                showNotification('Produk berhasil ditambahkan ke keranjang', 'success');
+            } else {
+                showNotification(data.message || 'Gagal menambahkan produk ke keranjang', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+    
+    // Toggle wishlist function
+    function toggleWishlist(productId, buttonElement) {
+        const isInWishlist = buttonElement.getAttribute('data-in-wishlist') === 'true';
+        const url = isInWishlist ? 
+            `/store/remove-from-wishlist/${productId}/` : 
+            `/store/add-to-wishlist/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Toggle wishlist state
+                const newState = !isInWishlist;
+                buttonElement.setAttribute('data-in-wishlist', newState);
+                
+                // Update icon and color
+                const icon = buttonElement.querySelector('i');
+                if (newState) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    buttonElement.classList.add('text-red-500');
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    buttonElement.classList.remove('text-red-500');
+                }
+                
+                // Show notification
+                showNotification(data.message, 'success');
+                
+                // Update wishlist count if exists
+                if (document.getElementById('wishlist-count')) {
+                    document.getElementById('wishlist-count').textContent = data.wishlist_count;
+                }
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Notification function
+    function showNotification(message, type) {
+        const notificationContainer = document.getElementById('notification-container');
+        if (!notificationContainer) {
+            const container = document.createElement('div');
+            container.id = 'notification-container';
+            container.style.position = 'fixed';
+            container.style.bottom = '20px';
+            container.style.right = '20px';
+            container.style.zIndex = '1000';
+            document.body.appendChild(container);
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `p-4 mb-4 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.getElementById('notification-container').appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }, 3000);
+    }
+</script>
+{% endblock %}

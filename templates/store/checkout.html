@@ -1,0 +1,717 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load store_filters %}
+
+{% block title %}Checkout - Mengtumbas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tax-info {
+        background-color: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .tax-info-title {
+        color: #0369a1;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .tax-info-title i {
+        margin-right: 0.5rem;
+    }
+    
+    .tax-detail {
+        display: flex;
+        justify-content: space-between;
+        color: #0c4a6e;
+        margin-bottom: 0.25rem;
+    }
+    
+    .tax-total {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        color: #0c4a6e;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed #bae6fd;
+    }
+
+    /* Payment method styling */
+    .payment-methods {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .payment-methods {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .payment-option {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .payment-option:hover {
+        border-color: #22c55e;
+        background-color: #f0fdf4;
+    }
+
+    .payment-option.selected {
+        border-color: #22c55e;
+        background-color: #f0fdf4;
+    }
+
+    .payment-logo {
+        width: 48px;
+        height: 24px;
+        object-fit: contain;
+    }
+
+    .payment-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-group-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #374151;
+        display: flex;
+        align-items: center;
+    }
+
+    .payment-group-title i {
+        margin-right: 0.5rem;
+    }
+
+    .payment-details {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed #e5e7eb;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .admin-fee-info {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div class="mb-4 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Checkout</h1>
+        <p class="text-gray-600 mt-2">Selesaikan pesanan Anda</p>
+        {% if not user.is_authenticated %}
+        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        Anda berbelanja sebagai tamu. Ingin menyimpan riwayat pesanan? 
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="font-medium underline hover:text-blue-800">Masuk</a>
+                        atau
+                        <a href="{% url 'register' %}?next={{ request.path }}" class="font-medium underline hover:text-blue-800">Daftar</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+        {% csrf_token %}
+        
+        <!-- Checkout Form -->
+        <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+            <!-- Shipping Information -->
+            <div class="card bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Informasi Pengiriman</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Depan <span class="text-red-500">*</span></label>
+                        <input type="text" name="first_name" value="{% if user.is_authenticated %}{{ user.first_name }}{% endif %}" 
+                               {% if user.is_authenticated %}readonly{% endif %}
+                               required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent {% if user.is_authenticated %}bg-gray-50{% endif %}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Belakang <span class="text-red-500">*</span></label>
+                        <input type="text" name="last_name" value="{% if user.is_authenticated %}{{ user.last_name }}{% endif %}"
+                               {% if user.is_authenticated %}readonly{% endif %}
+                               required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent {% if user.is_authenticated %}bg-gray-50{% endif %}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}"
+                               {% if user.is_authenticated %}readonly{% endif %}
+                               required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent {% if user.is_authenticated %}bg-gray-50{% endif %}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="card bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Alamat Pengiriman</h2>
+                
+                <div>
+                    <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">
+                        Alamat Lengkap <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="shipping_address" id="shipping_address" rows="4" required
+                              placeholder="Masukkan alamat lengkap termasuk kode pos..."
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">{% if user.customer.address %}{{ user.customer.address }}{% endif %}</textarea>
+                </div>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="card bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Catatan Pesanan (Opsional)</h2>
+                
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                        Catatan untuk Penjual
+                    </label>
+                    <textarea name="notes" id="notes" rows="3"
+                              placeholder="Catatan khusus untuk pesanan ini..."
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="card bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Metode Pembayaran</h2>
+                
+                <input type="hidden" name="payment_method" id="payment_method" value="cod">
+                <input type="hidden" name="payment_channel" id="payment_channel" value="">
+                
+                <!-- COD Payment -->
+                <div class="payment-group">
+                    <div class="payment-group-title">
+                        <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                    </div>
+                    <div class="payment-methods">
+                        <div class="payment-option selected" data-method="cod" data-channel="cod" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">Cash on Delivery (COD)</div>
+                                <div><i class="fas fa-money-bill-wave text-green-600"></i></div>
+                            </div>
+                            <div class="payment-details">
+                                Bayar saat barang sampai di tempat Anda
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Virtual Account -->
+                <div class="payment-group">
+                    <div class="payment-group-title">
+                        <i class="fas fa-university"></i> Virtual Account
+                    </div>
+                    <div class="payment-methods">
+                        <div class="payment-option" data-method="virtual_account" data-channel="bca" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">BCA Virtual Account</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/960px-Bank_Central_Asia.svg.png" alt="BCA" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Transfer melalui ATM BCA, m-BCA, atau BCA Mobile
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                        
+                        <div class="payment-option" data-method="virtual_account" data-channel="bni" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">BNI Virtual Account</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/id/5/55/BNI_logo.svg" alt="BNI" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Transfer melalui ATM BNI, iBank, atau BNI Mobile
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                        
+                        <div class="payment-option" data-method="virtual_account" data-channel="mandiri" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">Mandiri Virtual Account</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" alt="Mandiri" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Transfer melalui ATM Mandiri, Livin' by Mandiri
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                        
+                        <div class="payment-option" data-method="virtual_account" data-channel="bri" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">BRI Virtual Account</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BANK_BRI_logo.svg/2560px-BANK_BRI_logo.svg.png" alt="BRI" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Transfer melalui ATM BRI, BRImo
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- QRIS Payment -->
+                <div class="payment-group">
+                    <div class="payment-group-title">
+                        <i class="fas fa-qrcode"></i> QRIS
+                    </div>
+                    <div class="payment-methods">
+                        <div class="payment-option" data-method="qris" data-channel="qris" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">QRIS</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/QRIS_logo.svg/2560px-QRIS_logo.svg.png" alt="QRIS" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Bayar dengan scan QRIS melalui aplikasi e-wallet favorit Anda
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- E-Wallet -->
+                <div class="payment-group">
+                    <div class="payment-group-title">
+                        <i class="fas fa-wallet"></i> E-Wallet
+                    </div>
+                    <div class="payment-methods">
+                        <div class="payment-option" data-method="ewallet" data-channel="gopay" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">GoPay</div>
+                                <div><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW9YUwWTjUqlO04YDbTs51HpkmZSZLe2Px6g&s" alt="GoPay" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Bayar dengan saldo GoPay Anda
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                        
+                        <div class="payment-option" data-method="ewallet" data-channel="ovo" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">OVO</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/2560px-Logo_ovo_purple.svg.png" alt="OVO" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Bayar dengan saldo OVO Anda
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                        
+                        <div class="payment-option" data-method="ewallet" data-channel="dana" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">DANA</div>
+                                <div><img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" alt="DANA" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Bayar dengan saldo DANA Anda
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                        
+                        <div class="payment-option" data-method="ewallet" data-channel="shopeepay" onclick="selectPayment(this)">
+                            <div class="flex items-center justify-between">
+                                <div class="font-medium">ShopeePay</div>
+                                <div><img src="https://images.seeklogo.com/logo-png/40/2/shopee-pay-logo-png_seeklogo-406839.png" alt="ShopeePay" class="payment-logo"></div>
+                            </div>
+                            <div class="payment-details">
+                                Bayar dengan saldo ShopeePay Anda
+                            </div>
+                            <div class="admin-fee-info">Biaya admin: 0,5% dari total transaksi</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="card sticky top-8">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-6">Ringkasan Pesanan</h2>
+                    
+                    <!-- Order Items -->
+                    <div class="space-y-4 mb-6">
+                        {% for item in cart.items.all %}
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                         class="w-full h-full object-cover rounded-lg">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-xs"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
+                                <p class="text-sm text-gray-500">{{ item.quantity }}x</p>
+                            </div>
+                            <p class="text-sm font-medium text-gray-900">
+                                Rp {{ item.get_total_price|floatformat:0|intcomma }}
+                            </p>
+                        </div>
+                        
+                        {% if item.product.category.origin_type == 'foreign' %}
+                        <div class="ml-16 text-xs text-blue-600">
+                            <i class="fas fa-info-circle"></i> Produk impor (termasuk pajak & biaya)
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Order Total -->
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Subtotal ({{ cart.get_total_items }} item)</span>
+                            <span class="font-medium">Rp {{ cart.get_subtotal|floatformat:0|intcomma }}</span>
+                        </div>
+                        
+                        {% if has_foreign_products %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Pajak & Biaya Impor</span>
+                            <span class="font-medium">Rp {{ import_fees|floatformat:0|intcomma }}</span>
+                        </div>
+                        
+                        <div class="tax-info mt-2 mb-2">
+                            <div class="tax-info-title">
+                                <i class="fas fa-info-circle"></i> Informasi Pajak Impor
+                            </div>
+                            {% for item in cart.items.all %}
+                                {% if item.product.category.origin_type == 'foreign' %}
+                                    {% with tax_details=item.product.get_tax_details %}
+                                    <div class="tax-detail">
+                                        <span>Harga Dasar</span>
+                                        <span>Rp {{ tax_details.base_price|floatformat:0|intcomma }}</span>
+                                    </div>
+                                    <div class="tax-detail">
+                                        <span>Pajak Impor (10%)</span>
+                                        <span>Rp {{ tax_details.import_tax|floatformat:0|intcomma }}</span>
+                                    </div>
+                                    <div class="tax-detail">
+                                        <span>Bea Cukai</span>
+                                        <span>Rp {{ tax_details.customs_fee|floatformat:0|intcomma }}</span>
+                                    </div>
+                                    <div class="tax-detail">
+                                        <span>Biaya Penanganan</span>
+                                        <span>Rp {{ tax_details.handling_fee|floatformat:0|intcomma }}</span>
+                                    </div>
+                                    <div class="tax-total">
+                                        <span>Total per unit</span>
+                                        <span>Rp {{ tax_details.final_price|floatformat:0|intcomma }}</span>
+                                    </div>
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Ongkos Kirim</span>
+                            {% if has_foreign_products %}
+                                <span class="font-medium">Rp {{ shipping_cost|floatformat:0|intcomma }}</span>
+                            {% else %}
+                                <span class="font-medium">Gratis</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if has_foreign_products %}
+                        <div class="tax-info mt-2 mb-2">
+                            <div class="tax-info-title">
+                                <i class="fas fa-info-circle"></i> Informasi Biaya Pengiriman Internasional
+                            </div>
+                            <div class="tax-detail">
+                                <span>Produk asing</span>
+                                <span>{{ foreign_items_count }} item</span>
+                            </div>
+                            <div class="tax-detail">
+                                <span>Biaya per produk</span>
+                                <span>Rp 150.000</span>
+                            </div>
+                            <div class="tax-total">
+                                <span>Total biaya pengiriman</span>
+                                <span>Rp {{ shipping_cost|floatformat:0|intcomma }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Biaya Admin</span>
+                            <span class="font-medium" id="admin-fee">Gratis</span>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <div class="flex justify-between text-lg font-semibold">
+                                <span>Total</span>
+                                <span class="text-blue-600" id="total-amount">
+                                    {% if has_foreign_products %}
+                                        Rp {{ cart.get_subtotal|add:import_fees|add:shipping_cost|floatformat:0|intcomma }}
+                                    {% else %}
+                                        Rp {{ cart.get_total|floatformat:0|intcomma }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Place Order Button -->
+                    <button type="submit" class="w-full btn-primary" id="place-order-btn">
+                        <i class="fas fa-check mr-2"></i>
+                        Buat Pesanan
+                    </button>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'store:cart' %}" class="text-blue-600 hover:text-blue-800 text-sm">
+                            <i class="fas fa-arrow-left mr-1"></i>
+                            Kembali ke Keranjang
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Calculate total amount with admin fee
+    function calculateTotal() {
+        const paymentMethod = document.getElementById('payment_method').value;
+        const adminFeeElement = document.getElementById('admin-fee');
+        const totalAmountElement = document.getElementById('total-amount');
+        
+        {% if has_foreign_products %}
+            let baseAmount = {{ cart.get_subtotal|add:import_fees|add:shipping_cost }};
+        {% else %}
+            let baseAmount = {{ cart.get_total }};
+        {% endif %}
+        
+        let adminFee = 0;
+        
+        if (paymentMethod === 'virtual_account' || paymentMethod === 'ewallet' || paymentMethod === 'qris') {
+            // Calculate 0.5% admin fee
+            adminFee = Math.round(baseAmount * 0.005);
+            adminFeeElement.textContent = 'Rp ' + adminFee.toLocaleString('id-ID');
+        } else {
+            adminFeeElement.textContent = 'Gratis';
+        }
+        
+        const totalAmount = baseAmount + adminFee;
+        totalAmountElement.textContent = 'Rp ' + totalAmount.toLocaleString('id-ID');
+
+        // Check if total amount is above 10,000,000
+        checkPaymentRestrictions(totalAmount);
+    }
+    
+    // Function to check payment restrictions based on total amount
+    function checkPaymentRestrictions(totalAmount) {
+        const codOptions = document.querySelectorAll('[data-method="cod"]');
+        const ewalletOptions = document.querySelectorAll('[data-method="ewallet"]');
+        const qrisOptions = document.querySelectorAll('[data-method="qris"]');
+        const virtualAccountOptions = document.querySelectorAll('[data-method="virtual_account"]');
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        
+        // Disable COD for orders above 1,000,000
+        if (totalAmount > 1000000) {
+            // Disable COD options
+            codOptions.forEach(option => {
+                option.classList.add('opacity-50', 'cursor-not-allowed');
+                option.onclick = null;
+                option.setAttribute('title', 'Pembayaran COD hanya tersedia untuk pesanan di bawah Rp 1.000.000');
+                
+                // If this option was selected, select the first available alternative option
+                if (option.classList.contains('selected')) {
+                    option.classList.remove('selected');
+                    if (virtualAccountOptions.length > 0) {
+                        selectPayment(virtualAccountOptions[0]);
+                    } else if (ewalletOptions.length > 0) {
+                        selectPayment(ewalletOptions[0]);
+                    } else if (qrisOptions.length > 0) {
+                        selectPayment(qrisOptions[0]);
+                    }
+                }
+            });
+            
+            // Show COD restriction message
+            if (!document.getElementById('cod-restriction-message')) {
+                const messageDiv = document.createElement('div');
+                messageDiv.id = 'cod-restriction-message';
+                messageDiv.className = 'bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4';
+                messageDiv.innerHTML = '<p><strong>Perhatian:</strong> Pembayaran COD hanya tersedia untuk pesanan di bawah Rp 1.000.000.</p>';
+                
+                const paymentMethodSection = document.querySelector('.payment-group-title').parentNode;
+                paymentMethodSection.insertBefore(messageDiv, paymentMethodSection.firstChild.nextSibling);
+            }
+        } else {
+            // Re-enable COD options if total is below 1,000,000
+            codOptions.forEach(option => {
+                option.classList.remove('opacity-50', 'cursor-not-allowed');
+                option.onclick = function() { selectPayment(this); };
+                option.removeAttribute('title');
+            });
+            
+            // Remove COD restriction message
+            const codRestrictionMessage = document.getElementById('cod-restriction-message');
+            if (codRestrictionMessage) {
+                codRestrictionMessage.remove();
+            }
+        }
+        
+        // If total amount is above 10,000,000, disable COD, e-wallet, and QRIS options
+        if (totalAmount > 10000000) {
+            // Show restriction message
+            if (!document.getElementById('payment-restriction-message')) {
+                const messageDiv = document.createElement('div');
+                messageDiv.id = 'payment-restriction-message';
+                messageDiv.className = 'bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4';
+                messageDiv.innerHTML = '<p><strong>Perhatian:</strong> Untuk pembelian di atas Rp 10.000.000, metode pembayaran yang tersedia hanya Virtual Account.</p>';
+                
+                const paymentMethodSection = document.querySelector('.card h2').parentNode;
+                paymentMethodSection.insertBefore(messageDiv, paymentMethodSection.firstChild.nextSibling);
+            }
+            
+            // Disable COD options
+            codOptions.forEach(option => {
+                option.classList.add('opacity-50', 'cursor-not-allowed');
+                option.onclick = null;
+                option.setAttribute('title', 'Tidak tersedia untuk pembelian di atas Rp 10.000.000');
+                
+                // If this option was selected, select the first available virtual account option
+                if (option.classList.contains('selected')) {
+                    option.classList.remove('selected');
+                    if (virtualAccountOptions.length > 0) {
+                        selectPayment(virtualAccountOptions[0]);
+                    }
+                }
+            });
+            
+            // Disable e-wallet options
+            ewalletOptions.forEach(option => {
+                option.classList.add('opacity-50', 'cursor-not-allowed');
+                option.onclick = null;
+                option.setAttribute('title', 'Tidak tersedia untuk pembelian di atas Rp 10.000.000');
+                
+                // If this option was selected, select the first available virtual account option
+                if (option.classList.contains('selected')) {
+                    option.classList.remove('selected');
+                    if (virtualAccountOptions.length > 0) {
+                        selectPayment(virtualAccountOptions[0]);
+                    }
+                }
+            });
+            
+            // Disable QRIS options
+            qrisOptions.forEach(option => {
+                option.classList.add('opacity-50', 'cursor-not-allowed');
+                option.onclick = null;
+                option.setAttribute('title', 'Tidak tersedia untuk pembelian di atas Rp 10.000.000');
+                
+                // If this option was selected, select the first available virtual account option
+                if (option.classList.contains('selected')) {
+                    option.classList.remove('selected');
+                    if (virtualAccountOptions.length > 0) {
+                        selectPayment(virtualAccountOptions[0]);
+                    }
+                }
+            });
+            
+            // Add form submission validation
+            document.querySelector('form').addEventListener('submit', function(event) {
+                const selectedPaymentMethod = document.getElementById('payment_method').value;
+                if (selectedPaymentMethod === 'cod' || selectedPaymentMethod === 'ewallet' || selectedPaymentMethod === 'qris') {
+                    event.preventDefault();
+                    alert('Untuk pembelian di atas Rp 10.000.000, metode pembayaran yang tersedia hanya Virtual Account.');
+                    return false;
+                }
+            });
+        } else {
+            // Remove restriction message if exists
+            const restrictionMessage = document.getElementById('payment-restriction-message');
+            if (restrictionMessage) {
+                restrictionMessage.remove();
+            }
+            
+            // Re-enable COD options
+            codOptions.forEach(option => {
+                option.classList.remove('opacity-50', 'cursor-not-allowed');
+                option.onclick = function() { selectPayment(this); };
+                option.removeAttribute('title');
+            });
+            
+            // Re-enable e-wallet options
+            ewalletOptions.forEach(option => {
+                option.classList.remove('opacity-50', 'cursor-not-allowed');
+                option.onclick = function() { selectPayment(this); };
+                option.removeAttribute('title');
+            });
+            
+            // Re-enable QRIS options
+            qrisOptions.forEach(option => {
+                option.classList.remove('opacity-50', 'cursor-not-allowed');
+                option.onclick = function() { selectPayment(this); };
+                option.removeAttribute('title');
+            });
+            
+            // Remove form submission validation
+            document.querySelector('form').onsubmit = null;
+        }
+    }
+    
+    // Select payment method
+    function selectPayment(element) {
+        // Check if the element is disabled
+        if (element.classList.contains('cursor-not-allowed')) {
+            return;
+        }
+        
+        // Remove selected class from all options
+        const options = document.querySelectorAll('.payment-option');
+        options.forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked option
+        element.classList.add('selected');
+        
+        // Update hidden input values
+        const method = element.getAttribute('data-method');
+        const channel = element.getAttribute('data-channel');
+        
+        document.getElementById('payment_method').value = method;
+        document.getElementById('payment_channel').value = channel;
+        
+        // Recalculate total
+        calculateTotal();
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotal();
+    });
+</script>
+{% endblock %}

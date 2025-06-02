@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load store_filters %}
+
+{% block title %}{{ page_title }} - MengTumbas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'frontend/css/product-card-custom.css' %}">
+<style>
+    .active-category {
+        background-color: #03ac0e;
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header Section -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ page_title }}</h1>
+                <p class="text-gray-600">
+                    {% if origin_type == 'local' %}
+                        Temukan produk-produk berkualitas dari dalam negeri
+                    {% else %}
+                        Jelajahi produk-produk berkualitas dari luar negeri
+                    {% endif %}
+                </p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-500">Total Produk</p>
+                <p class="text-2xl font-bold text-primary">{{ page_obj.paginator.count }}</p>
+            </div>
+        </div>
+  
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Sidebar Filters -->
+        <div class="lg:w-1/4">
+            <div class="bg-white rounded-xl shadow-sm p-6 sticky top-6">
+                <h3 class="text-lg font-semibold mb-4">Filter Kategori</h3>
+                
+                <!-- All Products Link -->
+                <div class="mb-4">
+                    <a href="{% if origin_type == 'local' %}{% url 'store:local_products' %}{% else %}{% url 'store:foreign_products' %}{% endif %}" 
+                       class="block px-4 py-2 rounded-lg {% if not current_category %}active-category{% else %}text-gray-900 hover:bg-gray-100{% endif %} transition-colors cursor-pointer">
+                        <i class="fas fa-th-large mr-2"></i>
+                        <span class="font-medium">Semua Kategori</span>
+                    </a>
+                </div>
+
+                <!-- Filter Sidebar -->
+                <div class="bg-white rounded-xl shadow-sm p-4 mb-6 category-sidebar">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Kategori</h2>
+                    
+                    <!-- Categories List -->
+                    <div class="space-y-2">
+                        {% for category in categories %}
+                        <div class="category-item">
+                            <a href="{% if origin_type == 'local' %}{% url 'store:local_products' %}{% else %}{% url 'store:foreign_products' %}{% endif %}?category={{ category.slug }}" 
+                               class="block px-4 py-2 rounded-lg {% if current_category == category.slug %}active-category{% else %}text-gray-900 hover:bg-gray-100{% endif %} transition-colors cursor-pointer">
+                                {{ category.name }}
+                                <span class="float-right text-xs {% if current_category == category.slug %}text-white{% else %}text-gray-500{% endif %}">
+                                    ({{ category.get_all_products_count }})
+                                </span>
+                            </a>
+                            
+                            <!-- Subcategories -->
+                            {% if category.subcategories.all %}
+                            <div class="ml-4 mt-2 space-y-1">
+                                {% for subcategory in category.subcategories.all %}
+                                <a href="{% if origin_type == 'local' %}{% url 'store:local_products' %}{% else %}{% url 'store:foreign_products' %}{% endif %}?category={{ subcategory.slug }}" 
+                                   class="block px-3 py-1 text-sm rounded-md {% if current_category == subcategory.slug %}active-category{% else %}text-gray-900 hover:bg-gray-100{% endif %} transition-colors cursor-pointer">
+                                    {{ subcategory.name }}
+                                    <span class="float-right text-xs {% if current_category == subcategory.slug %}text-white{% else %}text-gray-500{% endif %}">
+                                        ({{ subcategory.get_product_count }})
+                                    </span>
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Sort Options -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="font-medium mb-3">Urutkan</h4>
+                    <select onchange="applySorting(this.value)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Nama A-Z</option>
+                        <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Harga Terendah</option>
+                        <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Harga Tertinggi</option>
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Terbaru</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="lg:w-3/4">
+            <!-- Products Count and Current Filter -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600">
+                            Menampilkan {{ page_obj.start_index }}-{{ page_obj.end_index }} dari {{ page_obj.paginator.count }} produk
+                            {% if selected_category %}
+                                dalam kategori "<strong class="text-primary">{{ selected_category.get_full_name }}</strong>"
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                                   {% if origin_type == 'local' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            <i class="fas {% if origin_type == 'local' %}fa-home{% else %}fa-globe{% endif %} mr-2"></i>
+                            {{ page_title }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            {% if page_obj %}
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {% for product_data in page_obj %}
+                {% if origin_type == 'foreign' %}
+                    {% with product=product_data.product tax_details=product_data.tax_details %}
+                    {% include 'store/partials/product_card.html' with product=product %}
+                    {% endwith %}
+                {% else %}
+                    {% include 'store/partials/product_card.html' with product=product_data %}
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="mt-8 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_sort %}sort={{ current_sort }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="px-4 py-2 bg-primary text-white rounded-lg">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_sort %}sort={{ current_sort }}&{% endif %}page={{ num }}" 
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_sort %}sort={{ current_sort }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- No Products Found -->
+            <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+                <i class="fas fa-box-open text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">Tidak ada produk ditemukan</h3>
+                <p class="text-gray-500">
+                    {% if selected_category %}
+                        Tidak ada produk dalam kategori "{{ selected_category.get_full_name }}"
+                    {% else %}
+                        Belum ada produk {{ page_title|lower }} yang tersedia
+                    {% endif %}
+                </p>
+                <a href="{% if origin_type == 'local' %}{% url 'store:local_products' %}{% else %}{% url 'store:foreign_products' %}{% endif %}" 
+                   class="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-green-600 transition-colors cursor-pointer">
+                    Lihat Semua Produk
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Import Fees Modal -->
+<div id="importFeesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 max-w-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-blue-800">Rincian Biaya Tambahan</h3>
+            <button onclick="hideImportFees()" class="text-gray-500 hover:text-gray-700 cursor-pointer">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div id="productInfo" class="pb-4 border-b border-gray-200">
+                <p class="text-lg font-medium" id="productName"></p>
+                <p class="text-primary font-bold mt-1" id="productPrice"></p>
+            </div>
+            <div class="grid gap-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-percentage text-blue-500 mr-2"></i>
+                        <span class="text-gray-600">Pajak Impor</span>
+                    </div>
+                    <span class="font-semibold text-blue-700" id="taxAmount"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-invoice text-blue-500 mr-2"></i>
+                        <span class="text-gray-600">Bea Cukai</span>
+                    </div>
+                    <span class="font-semibold text-blue-700" id="customsFee"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-box text-blue-500 mr-2"></i>
+                        <span class="text-gray-600">Biaya Penanganan</span>
+                    </div>
+                    <span class="font-semibold text-blue-700" id="handlingFee"></span>
+                </div>
+                <div class="pt-4 border-t border-gray-200 mt-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-800 font-medium">Total Biaya</span>
+                        <span class="text-lg font-bold text-primary" id="totalPrice"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Indonesian Rupiah formatting
+    function formatRupiah(amount) {
+        const number = Math.floor(amount);
+        return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Format prices on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const priceElements = document.querySelectorAll('[data-price]');
+        priceElements.forEach(element => {
+            const price = parseFloat(element.getAttribute('data-price'));
+            if (!isNaN(price)) {
+                element.textContent = formatRupiah(price);
+            }
+        });
+    });
+    
+    // Add to cart function
+    function addToCart(productId, quantity) {
+        fetch(`/store/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count if needed
+                if (document.getElementById('cart-count')) {
+                    document.getElementById('cart-count').textContent = data.cart_count;
+                }
+                
+                // Show success notification
+                showNotification('Produk berhasil ditambahkan ke keranjang', 'success');
+            } else {
+                showNotification(data.message || 'Gagal menambahkan produk ke keranjang', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+    
+    // Toggle wishlist function
+    function toggleWishlist(productId, buttonElement) {
+        const isInWishlist = buttonElement.getAttribute('data-in-wishlist') === 'true';
+        const url = isInWishlist ? 
+            `/store/remove-from-wishlist/${productId}/` : 
+            `/store/add-to-wishlist/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update button state
+                const icon = buttonElement.querySelector('.wishlist-icon');
+                if (isInWishlist) {
+                    icon.classList.replace('fas', 'far');
+                    buttonElement.setAttribute('data-in-wishlist', 'false');
+                    showNotification('Produk dihapus dari wishlist', 'success');
+                } else {
+                    icon.classList.replace('far', 'fas');
+                    buttonElement.setAttribute('data-in-wishlist', 'true');
+                    showNotification('Produk ditambahkan ke wishlist', 'success');
+                }
+            } else {
+                showNotification(data.message || 'Gagal memperbarui wishlist', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+    
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Show notification
+    function showNotification(message, type) {
+        // Check if notification container exists
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed bottom-4 right-4 z-50 flex flex-col space-y-2';
+            document.body.appendChild(container);
+        }
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `px-4 py-3 rounded-lg shadow-lg flex items-center ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        } transform transition-all duration-300 translate-y-0 opacity-100`;
+        
+        // Icon
+        const icon = document.createElement('i');
+        icon.className = `fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2`;
+        notification.appendChild(icon);
+        
+        // Message
+        const text = document.createElement('span');
+        text.textContent = message;
+        notification.appendChild(text);
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Import fees modal functions
+    function showImportFees(productName, basePrice, taxRate, customsFee, handlingFee) {
+        const modal = document.getElementById('importFeesModal');
+        const taxPercent = parseFloat(taxRate.replace('%', '')) / 100;
+        const taxAmount = basePrice * taxPercent;
+        const total = basePrice + taxAmount + customsFee + handlingFee;
+        
+        document.getElementById('productName').textContent = productName;
+        document.getElementById('productPrice').textContent = 'Harga Dasar: ' + formatRupiah(basePrice);
+        document.getElementById('taxAmount').textContent = formatRupiah(taxAmount);
+        document.getElementById('customsFee').textContent = formatRupiah(customsFee);
+        document.getElementById('handlingFee').textContent = formatRupiah(handlingFee);
+        document.getElementById('totalPrice').textContent = formatRupiah(total);
+        
+        modal.classList.remove('hidden');
+    }
+
+    function hideImportFees() {
+        document.getElementById('importFeesModal').classList.add('hidden');
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('importFeesModal');
+        if (e.target === modal) {
+            hideImportFees();
+        }
+    });
+    
+    // Apply sorting
+    function applySorting(sortValue) {
+        const url = new URL(window.location);
+        
+        // Preserve existing category parameter
+        const category = url.searchParams.get('category');
+        
+        // Reset URL parameters
+        url.search = '';
+        
+        // Add back parameters
+        if (category) {
+            url.searchParams.set('category', category);
+        }
+        if (sortValue) {
+            url.searchParams.set('sort', sortValue);
+        }
+        
+        // Reset to page 1 when sorting changes
+        url.searchParams.delete('page');
+        
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}

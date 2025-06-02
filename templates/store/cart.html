@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Keranjang Belanja - MengTumbas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'frontend/css/keranjang.css' %}">
+<link rel="stylesheet" href="{% static 'frontend/css/product-card-custom.css' %}">
+<style>
+    .guest-notice {
+        background-color: #fdf6b2;
+        color: #92400e;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #f6e05e;
+    }
+
+    .cart-empty-container {
+        background-color: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+    
+      .cart-item {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease-in-out;
+        position: relative;
+    }
+    
+    .cart-item:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+    
+    .cart-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 10%;
+        right: 10%;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+    }
+    
+    .cart-item:last-child::after {
+        display: none;
+    }
+    
+      .quantity-btn {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #f3f4f6;
+        transition: all 0.2s;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+    
+    .quantity-btn:hover {
+        background-color: #e5e7eb;
+        transform: scale(1.05);
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quantity-btn:active {
+        transform: scale(0.95);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        background-color: #d1d5db;
+    }
+    
+    .quantity-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .quantity-btn.decrease i {
+        color: #ef4444;
+    }
+    
+    .quantity-btn.increase i {
+        color: #10b981;
+    }
+    
+      .summary-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        position: sticky;
+        top: 8rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f3f4f6;
+        transition: all 0.3s ease;
+    }
+    
+    .summary-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        border-color: #e5e7eb;
+    }
+    
+    /* Toast animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .animate-fade-out {
+        animation: fadeOut 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+    }
+    
+    /* Price formatting */
+    .rupiah {
+        font-variant-numeric: tabular-nums;
+    }
+    
+    /* Toast notification */
+    .toast {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.5rem;
+        color: white;
+        z-index: 50;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .toast-success {
+        background-color: #10b981;
+    }
+    
+    .toast-error {
+        background-color: #ef4444;
+    }
+    
+    /* Loading state */
+    .btn-loading {
+        pointer-events: none;
+    }
+    
+    .btn-loading i {
+        visibility: hidden;
+    }
+    
+    .btn-loading:after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(107, 114, 128, 0.2);
+        border-top-color: #4f46e5;
+        animation: spin 0.7s linear infinite;
+    }
+    
+    .quantity-btn.decrease.btn-loading:after {
+        border-top-color: #ef4444;
+    }
+    
+    .quantity-btn.increase.btn-loading:after {
+        border-top-color: #10b981;
+    }
+    
+    @keyframes spin {
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-6 sm:py-8">
+    <div class="container mx-auto px-3 sm:px-4 max-w-7xl">
+        <div class="text-center mb-8 animate-fade-in">
+            <h1 class="text-3xl font-bold text-gray-900">Keranjang Belanja</h1>
+            <p class="text-gray-600 mt-2">Kelola produk yang ingin Anda beli</p>
+        </div>
+          
+        {% if is_guest %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="flex-shrink-0 text-yellow-500">
+                    <i class="fas fa-info-circle text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm md:text-base text-yellow-700">
+                        Anda berbelanja sebagai tamu. Keranjang belanja Anda akan hilang setelah menutup browser. 
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="font-medium underline hover:text-yellow-800 transition-colors">Masuk</a> 
+                        atau 
+                        <a href="{% url 'accounts:register' %}?next={{ request.path }}" class="font-medium underline hover:text-yellow-800 transition-colors">Daftar</a> 
+                        untuk menyimpan keranjang belanja Anda.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if is_guest and not cart.items or not is_guest and cart.get_total_items == 0 %}
+        <!-- Empty Cart -->
+        <div class="flex justify-center items-center min-h-[50vh] py-8">
+            <div class="cart-empty-container max-w-lg mx-auto w-full">
+                <div class="flex justify-center">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" alt="Keranjang Kosong" class="w-28 h-28 sm:w-32 sm:h-32 mb-6">
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Keranjang belanjamu kosong</h2>
+                <p class="text-gray-600 mb-8">Yuk, tambahkan barang-barang menarik ke keranjangmu!</p>
+                <a href="{% url 'store:home' %}" class="bg-primary hover:bg-green-600 text-white font-medium px-6 sm:px-8 py-3 rounded-lg transition-colors inline-flex items-center">
+                    <i class="fas fa-shopping-bag mr-2"></i> Mulai Belanja
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Cart with Items -->
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-3 gap-4 sm:gap-8">
+                <!-- Cart Items -->
+                <div class="xl:col-span-3 lg:col-span-2 md:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-semibold text-gray-900">Daftar Barang</h2>
+                            <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ cart.get_total_items }} barang</span>
+                        </div>
+
+                        {% if is_guest %}
+                            {% for item in cart.items %}
+                            <div class="cart-item border-b border-gray-100 last:border-0 py-4 first:pt-0 last:pb-0">
+                                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                                    <!-- Product Image -->
+                                    <div class="flex-shrink-0 mx-auto sm:mx-0">
+                                        <a href="{% url 'store:product_detail' item.slug %}">
+                                            <div class="w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                                {% if item.image_url %}
+                                                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="w-full h-full object-cover hover:scale-105 transition-transform">
+                                                {% else %}
+                                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                        <i class="fas fa-image text-gray-400"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <!-- Product Info -->
+                                    <div class="flex-grow text-center sm:text-left">
+                                        <a href="{% url 'store:product_detail' item.slug %}">
+                                            <h3 class="font-semibold text-gray-900 hover:text-primary transition-colors mb-2">{{ item.product_name }}</h3>
+                                        </a>
+                                        <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 mt-3">
+                                            <div class="flex items-center justify-center sm:justify-start space-x-2">
+                                                <form action="{% url 'store:update_cart_item' item.product_id %}" method="post" class="flex items-center">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="decrease">
+                                                    <button type="submit" class="quantity-btn decrease" onclick="setButtonLoading(this)">
+                                                    <i class="fas fa-minus text-xs"></i>
+                                                </button>
+                                                </form>
+                                                
+                                                <span class="w-14 h-8 flex items-center justify-center border border-gray-300 rounded-md font-medium text-gray-700">
+                                                    {{ item.quantity }}
+                                                </span>
+                                                
+                                                <form action="{% url 'store:update_cart_item' item.product_id %}" method="post" class="flex items-center">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="increase">
+                                                    <button type="submit" class="quantity-btn increase" onclick="setButtonLoading(this)">
+                                                    <i class="fas fa-plus text-xs"></i>
+                                                </button>
+                                                </form>
+                                                
+                                                <form action="{% url 'store:remove_from_cart' item.product_id %}" method="post" class="ml-3">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                                </form>
+                                            </div>
+                                            <div class="text-center sm:text-right">
+                                                <p class="text-lg font-semibold text-primary rupiah">Rp {{ item.total_price|floatformat:0|intcomma }}</p>
+                                                <p class="text-xs text-gray-500 rupiah">Rp {{ item.price|floatformat:0|intcomma }} × {{ item.quantity }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            {% for item in cart.items.all %}
+                            <div class="cart-item border-b border-gray-100 last:border-0 py-4 first:pt-0 last:pb-0">
+                                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                                    <!-- Product Image -->
+                                    <div class="flex-shrink-0 mx-auto sm:mx-0">
+                                        <a href="{% url 'store:product_detail' item.product.slug %}">
+                                            <div class="w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                                {% if item.product.image %}
+                                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover hover:scale-105 transition-transform">
+                                                {% else %}
+                                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                        <i class="fas fa-image text-gray-400"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <!-- Product Info -->
+                                    <div class="flex-grow text-center sm:text-left">
+                                        <a href="{% url 'store:product_detail' item.product.slug %}">
+                                            <h3 class="font-medium text-gray-900 hover:text-primary transition-colors">{{ item.product.name }}</h3>
+                                        </a>
+                                        <p class="text-sm text-gray-500 mb-2">{{ item.product.category.name }}</p>
+                                        
+                                        <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 mt-3">
+                                            <div class="flex items-center justify-center sm:justify-start space-x-2">
+                                                <form action="{% url 'store:update_cart_item' item.id %}" method="post" class="flex items-center">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="decrease">
+                                                    <button type="submit" class="quantity-btn decrease" onclick="setButtonLoading(this)">
+                                                        <i class="fas fa-minus text-xs"></i>
+                                                    </button>
+                                                </form>
+                                                
+                                                <span class="w-14 h-8 flex items-center justify-center border border-gray-300 rounded-md font-medium text-gray-700">
+                                                    {{ item.quantity }}
+                                                </span>
+                                                
+                                                <form action="{% url 'store:update_cart_item' item.id %}" method="post" class="flex items-center">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="increase">
+                                                    <button type="submit" class="quantity-btn increase" onclick="setButtonLoading(this)">
+                                                        <i class="fas fa-plus text-xs"></i>
+                                                    </button>
+                                                </form>
+                                                
+                                                <form action="{% url 'store:remove_from_cart' item.id %}" method="post" class="ml-3">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="text-red-500 hover:text-red-700">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <div class="text-center sm:text-right">
+                                                <p class="text-lg font-semibold text-primary rupiah">Rp {{ item.get_total_price|floatformat:0|intcomma }}</p>
+                                                <p class="text-xs text-gray-500 rupiah">Rp {{ item.product.price|floatformat:0|intcomma }} × {{ item.quantity }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="lg:col-span-1">
+                    <div class="summary-card shadow-sm">
+                        <h2 class="text-lg font-semibold mb-5 pb-1 border-b border-gray-100">Ringkasan Belanja</h2>
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Total Harga ({{ cart.get_total_items }} barang)</span>
+                                <span class="font-medium rupiah">Rp {{ cart.get_subtotal|floatformat:0|intcomma }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Biaya Pengiriman</span>
+                                <span class="font-medium rupiah">Rp {{ cart.get_shipping_cost|default:"0"|floatformat:0|intcomma }}</span>
+                            </div>
+                            {% if cart.get_discount_amount %}
+                            <div class="flex justify-between items-center text-green-600">
+                                <span>Diskon</span>
+                                <span class="rupiah">- Rp {{ cart.get_discount_amount|floatformat:0|intcomma }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-800">Total Belanja</span>
+                                <span class="text-xl font-bold text-primary rupiah">Rp {{ cart.get_total|floatformat:0|intcomma }}</span>
+                            </div>
+                        </div>
+                        
+                        <a href="{% url 'store:checkout' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-3 rounded-lg transition-colors font-semibold shadow-lg hover:shadow-xl text-lg flex items-center justify-center">
+                            <i class="fas fa-shopping-basket mr-2 text-xl"></i> 
+                            <span class="font-bold text-xl">CHECKOUT</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+    <div class="toast {% if message.tags %}toast-{{ message.tags }}{% else %}toast-info{% endif %} animate-fade-in">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(function(toast) {
+                toast.classList.add('animate-fade-out');
+                setTimeout(function() {
+                    toast.remove();
+                }, 500);
+            });
+        }, 3000);
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Format prices on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const rupiahElements = document.querySelectorAll('.rupiah');
+        rupiahElements.forEach(function(element) {
+            const text = element.textContent;
+            if (text.includes('Rp')) {
+                const formattedText = text.replace(/Rp\s?(\d+)(?:,(\d+))?/, function(match, p1, p2) {
+                    const number = p2 ? p1 + '.' + p2 : p1;
+                    return 'Rp ' + number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                });
+                element.textContent = formattedText;
+            }
+        });
+    });
+    
+    // Handle button loading state with timeout
+    function setButtonLoading(button) {
+        button.classList.add('btn-loading');
+        button.disabled = true;
+        
+        // Set a timeout to reset button state if the page doesn't reload
+        setTimeout(function() {
+            if (document.body.contains(button)) {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+            }
+        }, 3000); // 3 seconds timeout
+    }
+</script>
+{% endblock %}

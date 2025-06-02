@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Ulasan - MengTumbas{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-6 sm:py-8">
+    <div class="container mx-auto px-3 sm:px-4 max-w-3xl">
+        <div class="bg-white rounded-lg shadow-sm p-6 md:p-8">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold">Edit Ulasan</h1>
+                <p class="text-gray-600">Ulasan untuk {{ review.product.name }}</p>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0 mr-4">
+                        {% if review.product.image %}
+                            <img src="{{ review.product.image.url }}" alt="{{ review.product.name }}" class="w-24 h-24 object-cover rounded-lg">
+                        {% else %}
+                            <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-image text-gray-400 text-2xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-medium">{{ review.product.name }}</h2>
+                        <p class="text-sm text-gray-500">Diulas pada {{ review.created_at|date:"d M Y" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">Rating</label>
+                    <div class="flex items-center">
+                        {{ form.rating }}
+                    </div>
+                    {% if form.rating.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.rating.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">Komentar</label>
+                    {{ form.comment }}
+                    {% if form.comment.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.comment.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'accounts:profile' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">
+                        Batal
+                    </a>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

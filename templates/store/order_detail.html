@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Detail Pesanan #{{ order.order_number }} - Mengtumbas{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 mb-8">
+    <div class="mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-green-500">Pesanan #{{ order.order_number }}</h1>
+                <p class="text-gray-500 mt-2">Dipesan pada {{ order.created_at|date:"d M Y H:i" }}</p>
+            </div>
+            <div class="text-right">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    {% if order.status == 'pending' %}bg-yellow-100 text-yellow-600
+                    {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-600
+                    {% elif order.status == 'processing' %}bg-purple-100 text-purple-600
+                    {% elif order.status == 'shipped' %}bg-indigo-100 text-indigo-600
+                    {% elif order.status == 'delivered' %}bg-green-100 text-green-600
+                    {% elif order.status == 'cancelled' %}bg-red-100 text-red-600
+                    {% endif %}">
+                    {% if order.status == 'pending' %}Menunggu Konfirmasi
+                    {% elif order.status == 'confirmed' %}Dikonfirmasi
+                    {% elif order.status == 'processing' %}Diproses
+                    {% elif order.status == 'shipped' %}Dikirim
+                    {% elif order.status == 'delivered' %}Diterima
+                    {% elif order.status == 'cancelled' %}Dibatalkan
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Order Details - Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Order Items -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">Item Pesanan</h2>
+                    
+                    <div class="space-y-6">
+                        {% for item in order.items.all %}
+                        <div class="flex items-center space-x-4 pb-6 border-b border-gray-100 last:border-b-0">
+                            <div class="flex-shrink-0 w-20 h-20">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                         class="w-full h-full object-cover rounded-lg">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-800">
+                                    {{ item.product.name }}
+                                </h3>
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <p class="text-gray-600">Jumlah: {{ item.quantity }}</p>
+                                    <p class="text-gray-600">Harga: Rp {{ item.price|floatformat:0|intcomma }}</p>
+                                </div>
+                                <p class="text-primary font-bold mt-1">Total: Rp {{ item.get_total_price|floatformat:0|intcomma }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping info -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Alamat Pengiriman</h2>
+                    <div class="bg-gray-50 rounded-lg p-4 flex flex-col gap-1">
+                        <span class="font-semibold text-gray-800">{{ order.customer.get_full_name }}</span>
+                        <span class="text-gray-600 text-sm whitespace-pre-line">{{ order.shipping_address }}</span>
+                        <span class="text-gray-500 text-xs">{{ order.customer.phone|default:"No Phone" }}</span>
+                    </div>
+                    
+                    {% if order.notes %}
+                    <div class="mt-4">
+                        <p class="text-gray-800 font-semibold mb-2">Catatan:</p>
+                        <p class="text-gray-600 whitespace-pre-line bg-gray-50 rounded-lg p-4">{{ order.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order Tracking -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">Status Pesanan</h2>
+                    
+                    <div class="relative">
+                        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                        
+                        <div class="space-y-6">
+                            <!-- Pending -->
+                            <div class="relative flex items-center">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center z-10">
+                                    <i class="fas fa-clock text-white text-sm"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-800">Pesanan Dibuat</p>
+                                    <p class="text-sm text-gray-500">{{ order.created_at|date:"d M Y H:i" }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Confirmed -->
+                            <div class="relative flex items-center">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 
+                                    {% if order.status == 'confirmed' or order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                        border-blue-500 bg-blue-500
+                                    {% else %}
+                                        border-gray-300 bg-gray-100
+                                    {% endif %}
+                                    flex items-center justify-center z-10">
+                                    <i class="fas fa-check 
+                                        {% if order.status == 'confirmed' or order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                            text-white
+                                        {% else %}
+                                            text-gray-400
+                                        {% endif %}
+                                        text-sm"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-800">Pesanan Dikonfirmasi</p>
+                                    <p class="text-sm text-gray-500">
+                                        {% if order.status == 'confirmed' or order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                            Pesanan telah dikonfirmasi
+                                        {% else %}
+                                            Menunggu konfirmasi
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Processing -->
+                            <div class="relative flex items-center">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 
+                                    {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                        border-purple-500 bg-purple-500
+                                    {% else %}
+                                        border-gray-300 bg-gray-100
+                                    {% endif %}
+                                    flex items-center justify-center z-10">
+                                    <i class="fas fa-cog 
+                                        {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                            text-white
+                                        {% else %}
+                                            text-gray-400
+                                        {% endif %}
+                                        text-sm"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-800">Sedang Diproses</p>
+                                    <p class="text-sm text-gray-500">
+                                        {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                            Pesanan sedang disiapkan
+                                        {% else %}
+                                            Menunggu pemrosesan
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Shipped -->
+                            <div class="relative flex items-center">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 
+                                    {% if order.status == 'shipped' or order.status == 'delivered' %}
+                                        border-indigo-500 bg-indigo-500
+                                    {% else %}
+                                        border-gray-300 bg-gray-100
+                                    {% endif %}
+                                    flex items-center justify-center z-10">
+                                    <i class="fas fa-truck 
+                                        {% if order.status == 'shipped' or order.status == 'delivered' %}
+                                            text-white
+                                        {% else %}
+                                            text-gray-400
+                                        {% endif %}
+                                        text-sm"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-800">Pesanan Dikirim</p>
+                                    <p class="text-sm text-gray-500">
+                                        {% if order.status == 'shipped' or order.status == 'delivered' %}
+                                            Pesanan dalam perjalanan
+                                        {% else %}
+                                            Menunggu pengiriman
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Delivered -->
+                            <div class="relative flex items-center">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 
+                                    {% if order.status == 'delivered' %}
+                                        border-green-500 bg-green-500
+                                    {% else %}
+                                        border-gray-300 bg-gray-100
+                                    {% endif %}
+                                    flex items-center justify-center z-10">
+                                    <i class="fas fa-check-double 
+                                        {% if order.status == 'delivered' %}
+                                            text-white
+                                        {% else %}
+                                            text-gray-400
+                                        {% endif %}
+                                        text-sm"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-800">Pesanan Diterima</p>
+                                    <p class="text-sm text-gray-500">
+                                        {% if order.status == 'delivered' %}
+                                            Pesanan telah diterima
+                                        {% else %}
+                                            Menunggu konfirmasi penerimaan
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary - Right Column -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-8">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">Ringkasan Pesanan</h2>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Subtotal ({{ order.items.count }} item)</span>
+                            <span class="font-medium text-gray-800">Rp {{ order.total_amount|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Ongkos Kirim</span>
+                            <span class="font-medium text-gray-800">Gratis</span>
+                        </div>
+                        
+                        {% if order.admin_fee > 0 %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Biaya Admin</span>
+                            <span class="font-medium text-gray-800">Rp {{ order.admin_fee|floatformat:0|intcomma }}</span>
+                        </div>
+                        {% else %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Biaya Admin</span>
+                            <span class="font-medium text-gray-800">Gratis</span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Payment Method Information -->
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex items-center mb-2">
+                                <span class="text-gray-600">Metode Pembayaran</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                {% if order.payment_method == 'cod' %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                                        <span class="font-medium">Cash on Delivery (COD)</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mt-1">Bayar saat barang sampai di tempat Anda</p>
+                                {% elif order.payment_method == 'virtual_account' %}
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium">
+                                                {% if order.payment_channel == 'bca' %}
+                                                    BCA Virtual Account
+                                                {% elif order.payment_channel == 'bni' %}
+                                                    BNI Virtual Account
+                                                {% elif order.payment_channel == 'mandiri' %}
+                                                    Mandiri Virtual Account
+                                                {% elif order.payment_channel == 'bri' %}
+                                                    BRI Virtual Account
+                                                {% else %}
+                                                    Virtual Account
+                                                {% endif %}
+                                            </span>
+                                            <p class="text-sm text-gray-500 mt-1">Transfer melalui ATM atau Mobile Banking</p>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            {% if order.payment_channel == 'bca' %}
+                                                <img src="https://cdn.freebiesupply.com/logos/large/2x/bank-central-asia-logo-png-transparent.png" alt="BCA" class="h-6 w-12 object-contain">
+                                            {% elif order.payment_channel == 'bni' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/id/5/55/BNI_logo.svg" alt="BNI" class="h-6 w-12 object-contain">
+                                            {% elif order.payment_channel == 'mandiri' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" alt="Mandiri" class="h-6 w-12 object-contain">
+                                            {% elif order.payment_channel == 'bri' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BANK_BRI_logo.svg/2560px-BANK_BRI_logo.svg.png" alt="BRI" class="h-6 w-12 object-contain">
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% elif order.payment_method == 'ewallet' %}
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium">
+                                                {% if order.payment_channel == 'gopay' %}
+                                                    GoPay
+                                                {% elif order.payment_channel == 'ovo' %}
+                                                    OVO
+                                                {% elif order.payment_channel == 'dana' %}
+                                                    DANA
+                                                {% elif order.payment_channel == 'shopeepay' %}
+                                                    ShopeePay
+                                                {% else %}
+                                                    E-Wallet
+                                                {% endif %}
+                                            </span>
+                                            <p class="text-sm text-gray-500 mt-1">Pembayaran melalui e-wallet</p>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            {% if order.payment_channel == 'gopay' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/1200px-Gopay_logo.svg.png" alt="GoPay" class="h-6 w-12 object-contain">
+                                            {% elif order.payment_channel == 'ovo' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/2560px-Logo_ovo_purple.svg.png" alt="OVO" class="h-6 w-12 object-contain">
+                                            {% elif order.payment_channel == 'dana' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" alt="DANA" class="h-6 w-12 object-contain">
+                                            {% elif order.payment_channel == 'shopeepay' %}
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/ShopeePay_logo.svg/2560px-ShopeePay_logo.svg.png" alt="ShopeePay" class="h-6 w-12 object-contain">
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% elif order.payment_method == 'qris' %}
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium">QRIS</span>
+                                            <p class="text-sm text-gray-500 mt-1">Pembayaran melalui QRIS</p>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/QRIS_logo.svg/2560px-QRIS_logo.svg.png" alt="QRIS" class="h-6 w-12 object-contain">
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-credit-card text-gray-600 mr-2"></i>
+                                        <span class="font-medium">Pembayaran Lainnya</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between text-lg font-semibold">
+                                <span class="text-gray-800">Total</span>
+                                <span class="text-primary">Rp {{ order.total_amount|floatformat:0|intcomma }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        {% if order.status == 'delivered' %}
+                            <div class="space-y-3">
+                                {% for item in order.items.all %}
+                                <a href="{% url 'accounts:add_review' item.id %}" class="w-full py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition text-center block">
+                                    <i class="fas fa-star mr-2"></i>
+                                    Beri Review untuk {{ item.product.name }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% if order.status == 'shipped' %}
+                            <form method="post" action="{% url 'store:complete_order' order.order_number %}" class="w-full">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Konfirmasi Penerimaan
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if order.status == 'pending' or order.status == 'confirmed' %}
+                            <form method="post" action="{% url 'store:cancel_order' order.order_number %}" class="w-full" 
+                                  onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold transition">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Batalkan Pesanan
+                                </button>
+                            </form>
+                        {% endif %}                        <a href="{% url 'accounts:profile' %}" class="w-full py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold transition text-center block">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Kembali ke Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelOrder(orderNumber) {
+    if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
+        // Add AJAX call to cancel order
+        alert('Fitur pembatalan pesanan sedang dalam pengembangan.');
+    }
+}
+</script>
+{% endblock %}

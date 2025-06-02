@@ -1,0 +1,1088 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MengTumbas{% endblock %}</title>
+    
+    <!-- External CSS and JS Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/windui@latest/dist/windui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Mobile Interactions -->
+    <script src="{% static 'frontend/js/mobile-interactions.js' %}" defer></script>
+    
+    <!-- Application JavaScript -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/csrf_check.js' %}" defer></script>
+    
+    <!-- Application CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'frontend/css/responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'frontend/css/mobile.css' %}">
+    <link rel="stylesheet" href="{% static 'frontend/css/mobile-fixes.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        },
+                        secondary: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12'
+                        },
+                        dark: '#0a0a0a',
+                        glass: 'rgba(255, 255, 255, 0.1)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    screens: {
+                        'xs': '475px',
+                        'sm': '640px',
+                        'md': '768px',
+                        'lg': '1024px',
+                        'xl': '1280px',
+                        '2xl': '1536px',
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                        'elevated': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Core Styles -->
+    <style>
+        /* Modern CSS Variables */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            --secondary-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Base Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #fafafa;
+        }
+
+        /* Enhanced Glass Morphism */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        /* Modern Card Design */
+        .modern-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Enhanced Mobile Experience */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .modern-card {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+
+            /* Better touch targets */
+            button, 
+            a,
+            .clickable {
+                min-height: 44px;
+                min-width: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Safe area support */
+            .safe-bottom {
+                padding-bottom: env(safe-area-inset-bottom, 1rem);
+            }
+
+            /* Enhanced scrolling */
+            .scroll-container {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .scroll-container::-webkit-scrollbar {
+                display: none;
+            }
+        }
+
+        /* Modern Button Design */
+        .btn-modern {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.2);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-modern:active {
+            transform: translateY(0);
+        }
+
+        /* Modern Form Controls */
+        .input-modern {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-modern:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        }
+
+        /* Enhanced Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        /* Modern Loading States */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Modern Headers */
+        .header-modern {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1rem;
+            border-radius: 0 0 24px 24px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1);
+        }
+
+        /* Enhanced Typography */
+        .title-modern {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .subtitle-modern {
+            font-size: 1.125rem;
+            color: #4b5563;
+            margin-bottom: 2rem;        }
+
+        /* Notification System */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+
+        #notification-container > div {
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slide-in 0.3s ease forwards;
+            opacity: 0;
+            transform: translateX(50px);
+        }
+
+        @keyframes slide-in {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .fade-in {
+            animation: fade-in 0.3s ease forwards;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modern Grid Layout */
+        .grid-modern {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            padding: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .grid-modern {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+                padding: 0.75rem;
+            }
+            
+            .title-modern {
+                font-size: 1.25rem;
+            }
+            
+            .subtitle-modern {
+                font-size: 1rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        /* Global product card styling */
+        .product-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .product-image-container {
+            height: 180px;
+            background-color: #f8f8f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            padding: 8px;
+        }
+        
+        .product-info {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .price-stock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            margin-top: auto;
+        }
+        
+        .product-price {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .product-stock {
+            font-size: 11px;
+            color: #888;
+            text-align: right;
+        }
+        
+        .product-stock.in-stock {
+            color: #22c55e;
+        }
+        
+        .product-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 5px;
+        }
+        
+        .btn-tambah {
+            background-color: #22c55e;
+            color: white;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 12px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-tambah:hover {
+            background-color: #16a34a;
+        }
+        
+        .btn-beli {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 12px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-beli:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-wishlist {
+            background-color: #f3f4f6;
+            color: #374151;
+            border-radius: 4px;
+            padding: 6px;
+            font-size: 12px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-wishlist:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .badge {
+            position: absolute;
+            border-radius: 9999px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .badge-origin {
+            top: 8px;
+            left: 8px;
+            z-index: 10;
+        }
+        
+        /* Sidebar category active state */
+        .category-sidebar .active-category {
+            font-weight: 700;
+            background-color: #4CAF50 !important;
+            color: white !important;
+            border-left: 4px solid #2E7D32;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .category-sidebar .active-category .text-gray-500 {
+            color: rgba(255,255,255,0.8) !important;
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            max-height: 2.5rem;
+        }
+    </style>
+    
+    <!-- Core JavaScript Functions -->
+    <script>
+        // Alert Functions
+        function showError(message) {
+            Swal.fire({
+                title: 'Error!',
+                text: message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#03ac0e'
+            });
+        }
+
+        function showSuccess(message) {
+            Swal.fire({
+                title: 'Success!',
+                text: message,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#03ac0e'
+            });
+        }
+        
+        function showConfirm(message, confirmCallback) {
+            Swal.fire({
+                title: 'Confirmation',
+                text: message,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No',
+                confirmButtonColor: '#03ac0e',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    confirmCallback();
+                }
+            });
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 hidden">
+        <div class="fixed top-0 left-0 w-[85%] max-w-sm h-full bg-white/95 backdrop-blur-xl shadow-elevated transform -translate-x-full transition-all duration-500 ease-out">
+            <div class="flex flex-col h-full">
+                <!-- Menu Header -->
+                <div class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100/80 bg-gradient-to-r from-primary-50 to-emerald-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-primary-500 p-2 shadow-lg">
+                            <i class="fas fa-shopping-bag text-white text-lg sm:text-xl"></i>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-900">MengTumbas</h2>
+                    </div>
+                    <button id="closeMobileMenu" class="p-2 rounded-full hover:bg-white/50 transition-all duration-300 group touch-target">
+                        <i class="fas fa-times text-gray-600 group-hover:rotate-90 transition-transform duration-300 text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Menu Navigation -->
+                <nav class="flex-1 overflow-y-auto py-4 sm:py-6 mobile-scroll">
+                    <div class="px-4 sm:px-6 pb-4 space-y-1 sm:space-y-2">
+                        <!-- Main Navigation -->
+                        <a href="{% url 'store:home' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 {% if request.path == '/' %}text-primary-600 bg-primary-50 active{% else %}text-gray-900{% endif %} rounded-xl touch-target">
+                            <i class="fas fa-home w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                            <span class="font-semibold text-sm sm:text-base">Beranda</span>
+                        </a>
+                        <a href="{% url 'store:product_list' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 {% if 'product_list' in request.path %}text-primary-600 bg-primary-50 active{% else %}text-gray-900{% endif %} rounded-xl touch-target">
+                            <i class="fas fa-th-large w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                            <span class="font-semibold text-sm sm:text-base">Semua Produk</span>
+                        </a>
+                        
+                        <div class="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-3 sm:my-4"></div>
+                        
+                        <a href="{% url 'store:local_products' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 hover:bg-primary-50 text-primary-600 rounded-xl touch-target">
+                            <i class="fas fa-store w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                            <span class="font-semibold text-sm sm:text-base">Barang Lokal</span>
+                            <span class="ml-auto bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-bold">HOT</span>
+                        </a>
+                        <a href="{% url 'store:foreign_products' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 hover:bg-blue-50 text-blue-600 rounded-xl touch-target">
+                            <i class="fas fa-globe w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                            <span class="font-semibold text-sm sm:text-base">Barang Asing</span>
+                            <span class="ml-auto bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">NEW</span>
+                        </a>
+                    </div>
+
+                    <!-- User Navigation -->
+                    {% if user.is_authenticated %}
+                        <div class="border-t border-gray-100 pt-4 sm:pt-6">
+                            <div class="px-4 sm:px-6 space-y-1 sm:space-y-2">
+                                <a href="{% url 'store:cart' %}" class="mobile-menu-item flex items-center justify-between p-3 sm:p-4 {% if 'cart' in request.path %}text-primary-600 bg-primary-50 active{% else %}text-gray-900{% endif %} rounded-xl touch-target">
+                                    <div class="flex items-center space-x-3 sm:space-x-4">
+                                        <i class="fas fa-shopping-cart w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                                        <span class="font-semibold text-sm sm:text-base">Keranjang</span>
+                                    </div>
+                                    {% if cart_count %}
+                                        <span class="badge-modern text-xs">
+                                            {{ cart_count }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                                <a href="{% url 'accounts:profile' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 {% if 'profile' in request.path %}text-primary-600 bg-primary-50 active{% else %}text-gray-900{% endif %} rounded-xl touch-target">
+                                    <i class="fas fa-user w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                                    <span class="font-semibold text-sm sm:text-base">Profil Saya</span>
+                                </a>
+                                <a href="{% url 'store:wishlist' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 {% if 'wishlist' in request.path %}text-primary-600 bg-primary-50 active{% else %}text-gray-900{% endif %} rounded-xl touch-target">
+                                    <i class="fas fa-heart w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                                    <span class="font-semibold text-sm sm:text-base">Wishlist</span>
+                                </a>
+                                <a href="{% url 'store:order_list' %}" class="mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 {% if 'order_list' in request.path %}text-primary-600 bg-primary-50 active{% else %}text-gray-900{% endif %} rounded-xl touch-target">
+                                    <i class="fas fa-box w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                                    <span class="font-semibold text-sm sm:text-base">Pesanan</span>
+                                </a>
+                                <form method="post" action="{% url 'accounts:logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full mobile-menu-item flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 hover:bg-red-50 text-red-600 rounded-xl touch-target">
+                                        <i class="fas fa-sign-out-alt w-5 sm:w-6 text-center text-lg sm:text-lg"></i>
+                                        <span class="font-semibold text-sm sm:text-base">Keluar</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="border-t border-gray-100 pt-4 sm:pt-6 px-4 sm:px-6">
+                            <a href="{% url 'accounts:login' %}" class="btn-primary flex items-center justify-center gap-3 p-3 sm:p-4 rounded-2xl text-white mb-3 touch-target">
+                                <i class="fas fa-sign-in-alt text-base sm:text-lg"></i>
+                                <span class="font-semibold text-sm sm:text-base">Masuk</span>
+                            </a>
+                            <a href="{% url 'accounts:register' %}" class="flex items-center justify-center gap-3 p-3 sm:p-4 rounded-2xl bg-gray-100 text-gray-900 hover:bg-gray-200 transition-all duration-300 touch-target">
+                                <i class="fas fa-user-plus text-base sm:text-lg"></i>
+                                <span class="font-semibold text-sm sm:text-base">Daftar</span>
+                            </a>
+                        </div>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>    <!-- Header -->
+    <header class="header-modern sticky top-0 z-50">
+        <div class="container mx-auto">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <a href="{% url 'store:home' %}" class="flex items-center gap-2">
+                    <span class="text-xl font-bold">MengTumbas</span>
+                </a>                <!-- Search Bar -->                <div class="flex-1 max-w-xl mx-4 hidden md:block">
+                    <form action="{% url 'store:search_products' %}" method="GET" class="relative">
+                        <input type="search" name="q" placeholder="Cari produk..." 
+                               class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 text-gray-900 bg-white">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 pointer-events-none"></i>
+                    </form>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center gap-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'store:product_list' %}" class="nav-item text-white">
+                            <i class="fas fa-th-large"></i>
+                            <span>Produk</span>
+                        </a>
+                        <a href="{% url 'store:wishlist' %}" class="nav-item text-white relative">
+                            <i class="fas fa-heart"></i>
+                            <span>Wishlist</span>
+                            {% if wishlist_count %}
+                                <span id="wishlist-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                    {{ wishlist_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'store:cart' %}" class="nav-item text-white relative">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Keranjang</span>
+                            {% if cart_count %}
+                                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                    {{ cart_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'accounts:profile' %}" class="nav-item text-white">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                        <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-item text-white">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Keluar</span>
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'store:product_list' %}" class="nav-item text-white">
+                            <i class="fas fa-th-large"></i>
+                            <span>Produk</span>
+                        </a>
+                        <a href="{% url 'accounts:login' %}" class="btn-modern">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Masuk</span>
+                        </a>
+                    {% endif %}
+                </nav>
+
+                <!-- Mobile Menu Toggle -->
+                <button id="mobile-menu-toggle" class="md:hidden btn-modern !p-2">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>            <!-- Mobile Search (Sticky) -->            <div class="md:hidden mt-4">
+                <form action="{% url 'store:search_products' %}" method="GET" class="relative">
+                    <input type="search" name="q" placeholder="Cari produk..." 
+                           class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 text-gray-900 bg-white">
+                    <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 pointer-events-none"></i>
+                </form>
+            </div>
+        </div>
+    </header>    <!-- Mobile Bottom Navigation -->
+    {% if user.is_authenticated %}
+        <nav class="mobile-bottom-nav fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-elevated z-50">
+            <div class="grid grid-cols-5 gap-1 p-1">
+                <a href="{% url 'store:home' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                    <i class="fas fa-home text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Beranda</span>
+                </a>
+                <a href="{% url 'store:product_list' %}" class="nav-item {% if 'product_list' in request.path %}active{% endif %}">
+                    <i class="fas fa-th-large text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Produk</span>
+                </a>
+                <a href="{% url 'store:cart' %}" class="nav-item {% if 'cart' in request.path %}active{% endif %}">
+                    <i class="fas fa-shopping-cart text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Keranjang</span>
+                    {% if cart_count %}
+                        <span class="absolute -top-1 -right-1 badge-modern animate-bounce-custom text-xs">
+                            {{ cart_count }}
+                        </span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'store:wishlist' %}" class="nav-item {% if 'wishlist' in request.path %}active{% endif %}">
+                    <i class="fas fa-heart text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Wishlist</span>
+                    {% if wishlist_count %}
+                        <span class="absolute -top-1 -right-1 badge-modern animate-bounce-custom text-xs">
+                            {{ wishlist_count }}
+                        </span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'accounts:profile' %}" class="nav-item {% if 'profile' in request.path %}active{% endif %}">
+                    <i class="fas fa-user text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Profil</span>
+                </a>
+            </div>
+        </nav>
+    {% endif %}    <!-- Main Content -->
+    <main class="flex-grow animate-fade-in pb-20 md:pb-0 min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- CSRF Token for JavaScript -->
+    <div style="display:none">
+        {% csrf_token %}
+    </div>
+
+    <!-- Core JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Header scroll effect
+            const header = document.querySelector('.header-modern');
+            if (header) {
+                const updateHeaderStyle = () => {
+                    if (window.scrollY > 100) {
+                        header.style.backgroundColor = 'rgba(34, 197, 94, 0.95)';
+                        header.style.backdropFilter = 'blur(20px)';
+                    } else {
+                        header.style.backgroundColor = '';
+                        header.style.backdropFilter = '';
+                    }
+                };
+                
+                window.addEventListener('scroll', updateHeaderStyle);
+                updateHeaderStyle(); // Initial check
+            }
+
+            // Enhanced message auto-hide with fade animation
+            setTimeout(function() {
+                const messages = document.querySelectorAll('[role="alert"]');
+                messages.forEach(function(message) {
+                    message.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateY(-20px)';
+                    setTimeout(() => message.remove(), 500);
+                });
+            }, 5000);
+
+            // Initialize cart popup with enhanced animations
+            const cartPopup = document.getElementById('cartNotificationPopup');
+            const closeCartButton = document.getElementById('closeCartPopup');
+            const popupOverlay = document.getElementById('popupOverlay');
+            const popupContent = cartPopup?.querySelector('.bg-white');
+
+            function showCartPopup() {
+                if (cartPopup && popupContent) {
+                    cartPopup.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        popupContent.style.opacity = '1';
+                        popupContent.style.transform = 'scale(1)';
+                    });
+                }
+            }
+
+            function hideCartPopup() {
+                if (cartPopup && popupContent) {
+                    popupContent.style.opacity = '0';
+                    popupContent.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        cartPopup.classList.add('hidden');
+                    }, 300);
+                }
+            }
+
+            if (closeCartButton) {
+                closeCartButton.addEventListener('click', hideCartPopup);
+            }
+
+            if (popupOverlay) {
+                popupOverlay.addEventListener('click', hideCartPopup);
+            }
+
+            // Initialize mobile menu with enhanced animations
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const closeMobileMenu = document.getElementById('closeMobileMenu');
+            const mobileMenuContent = mobileMenu?.querySelector('div:first-child');
+            
+            if (mobileMenuToggle && mobileMenu && mobileMenuContent) {
+                // Show mobile menu with stagger animation
+                mobileMenuToggle.addEventListener('click', () => {
+                    document.body.style.overflow = 'hidden';
+                    mobileMenu.classList.remove('hidden');
+                    
+                    // Add stagger animation to menu items
+                    const menuItems = mobileMenuContent.querySelectorAll('.mobile-menu-item');
+                    menuItems.forEach((item, index) => {
+                        item.style.opacity = '0';
+                        item.style.transform = 'translateX(-20px)';
+                    });
+                    
+                    requestAnimationFrame(() => {
+                        mobileMenuContent.style.transform = 'translateX(0)';
+                        
+                        // Animate menu items with stagger
+                        menuItems.forEach((item, index) => {
+                            setTimeout(() => {
+                                item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                item.style.opacity = '1';
+                                item.style.transform = 'translateX(0)';
+                            }, index * 50);
+                        });
+                    });
+                });
+                
+                // Hide mobile menu
+                const closeMobileMenuHandler = () => {
+                    mobileMenuContent.style.transform = 'translateX(-100%)';
+                    document.body.style.overflow = '';
+                    setTimeout(() => {
+                        mobileMenu.classList.add('hidden');
+                    }, 500);
+                };
+                
+                closeMobileMenu?.addEventListener('click', closeMobileMenuHandler);
+                
+                // Close menu when clicking outside
+                mobileMenu.addEventListener('click', (e) => {
+                    if (e.target === mobileMenu) {
+                        closeMobileMenuHandler();
+                    }
+                });
+
+                // Close menu on Escape
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+                        closeMobileMenuHandler();
+                    }
+                });
+            }
+
+            // Enhanced user dropdown menu
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+            let isDropdownOpen = false;
+
+            function closeDropdown() {
+                if (userDropdownMenu) {
+                    isDropdownOpen = false;
+                    userDropdownMenu.classList.remove('show');
+                    setTimeout(() => {
+                        if (!isDropdownOpen) {
+                            userDropdownMenu.style.display = 'none';
+                        }
+                    }, 300);
+                }
+            }
+
+            function openDropdown() {
+                if (userDropdownMenu) {
+                    isDropdownOpen = true;
+                    userDropdownMenu.style.display = 'block';
+                    userDropdownMenu.offsetHeight;
+                    userDropdownMenu.classList.add('show');
+                }
+            }
+
+            if (userMenuButton && userDropdownMenu) {
+                userMenuButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (isDropdownOpen) {
+                        closeDropdown();
+                    } else {
+                        openDropdown();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (isDropdownOpen && !userDropdownMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+                        closeDropdown();
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && isDropdownOpen) {
+                        closeDropdown();
+                    }
+                });
+            }            // Add smooth scroll behavior
+            document.documentElement.style.scrollBehavior = 'smooth';
+
+            // Enhanced mobile touch interactions
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Add touch feedback for all interactive elements
+                const interactiveElements = document.querySelectorAll('a, button, .nav-item, .mobile-menu-item');
+                interactiveElements.forEach(element => {
+                    element.addEventListener('touchstart', function() {
+                        this.style.transform = 'scale(0.95)';
+                        this.style.transition = 'transform 0.1s ease';
+                    });
+                    
+                    element.addEventListener('touchend', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                    
+                    element.addEventListener('touchcancel', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+
+                // Prevent zoom on input focus (iOS)
+                const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="search"], select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        this.style.fontSize = '16px';
+                    });
+                });
+
+                // Add swipe gesture for mobile menu
+                let startX, startY, distX, distY;
+                const threshold = 50;
+                
+                document.addEventListener('touchstart', function(e) {
+                    const touch = e.touches[0];
+                    startX = touch.clientX;
+                    startY = touch.clientY;
+                });
+                
+                document.addEventListener('touchmove', function(e) {
+                    if (!startX || !startY) return;
+                    
+                    const touch = e.touches[0];
+                    distX = touch.clientX - startX;
+                    distY = touch.clientY - startY;
+                });
+                
+                document.addEventListener('touchend', function(e) {
+                    if (!startX || !startY) return;
+                    
+                    // Swipe from left edge to open menu
+                    if (startX <= 20 && distX > threshold && Math.abs(distY) < threshold) {
+                        if (mobileMenu && mobileMenu.classList.contains('hidden')) {
+                            mobileMenuToggle.click();
+                        }
+                    }
+                    
+                    // Swipe right to close menu
+                    if (!mobileMenu.classList.contains('hidden') && distX > threshold && Math.abs(distY) < threshold) {
+                        closeMobileMenu?.click();
+                    }
+                    
+                    startX = startY = distX = distY = null;
+                });
+
+                // Optimize scrolling performance
+                let ticking = false;
+                  function updateScrollPosition() {
+                    const scrollY = window.scrollY;
+                    const header = document.querySelector('header');
+                    
+                    if (header) {
+                        if (scrollY > 100) {
+                            header.style.backgroundColor = 'rgba(34, 197, 94, 0.95)';
+                            header.style.backdropFilter = 'blur(20px)';
+                        } else {
+                            header.style.backgroundColor = '';
+                            header.style.backdropFilter = '';
+                        }
+                    }
+                    
+                    ticking = false;
+                }
+                
+                window.addEventListener('scroll', function() {
+                    if (!ticking) {
+                        requestAnimationFrame(updateScrollPosition);
+                        ticking = true;
+                    }
+                });
+            }
+
+            // Add loading state for forms
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        const originalText = submitButton.innerHTML;
+                        submitButton.setAttribute('data-original-text', originalText);
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        setTimeout(() => {
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = submitButton.getAttribute('data-original-text') || originalText;
+                        }, 3000);
+                    }
+                });
+            });
+
+            // Add hover effects for cards
+            const cards = document.querySelectorAll('.card-hover');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+      <!-- Cart Notification Popup -->
+    <div id="cartNotificationPopup" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500" id="popupOverlay"></div>
+        <div class="bg-white rounded-3xl shadow-elevated w-full max-w-md mx-4 transform transition-all duration-500 scale-95 opacity-0 card-hover">
+            <div class="p-8">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center animate-bounce-custom">
+                        <i class="fas fa-check text-3xl text-white"></i>
+                    </div>
+                </div>
+                <h3 class="text-gray-900 text-center text-xl font-bold mb-2">Berhasil!</h3>
+                <p class="text-gray-800 text-center text-base mb-8">Produk berhasil ditambahkan ke keranjang belanja Anda</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="{% url 'store:cart' %}" class="btn-primary px-8 py-3 rounded-2xl text-white font-semibold transition-all duration-300 hover:shadow-lg">
+                        <i class="fas fa-shopping-cart mr-2"></i>
+                        Lihat Keranjang
+                    </a>
+                    <button id="closeCartPopup" class="px-8 py-3 rounded-2xl bg-gray-100 text-gray-900 hover:bg-gray-200 transition-all duration-300 font-semibold">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Lanjut Belanja
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

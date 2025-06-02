@@ -1,0 +1,236 @@
+/* Banner kategori custom */
+.kategori-banner {
+    background: linear-gradient(90deg, #f87171 10%, #fbbf24 100%);
+    color: #ffffff;
+    border-radius: 2rem;
+    box-shadow: 0 4px 24px 0 rgba(248,113,113,0.2);
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.kategori-label {
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 12px 0 rgba(248,113,113,0.2);
+}
+
+/* Custom shadow for product images */
+.custom-img-shadow {
+    box-shadow: 0 2px 16px 0 rgba(59,130,246,0.10);
+}
+
+/* Diskon section custom background */
+.diskon-section {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 1.5rem;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    box-shadow: 0 2px 16px 0 rgba(248,113,113,0.1);
+}
+
+/* Produk diskon list scrollbar styling */
+.produk-diskon-list {
+    scrollbar-width: thin;
+    scrollbar-color: #f87171 #fff7f7;
+}
+.produk-diskon-list::-webkit-scrollbar {
+    height: 8px;
+}
+.produk-diskon-list::-webkit-scrollbar-thumb {
+    background: #f87171;
+    border-radius: 8px;
+}
+
+/* Produk diskon card custom shadow */
+.produk-diskon-card {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 12px 0 rgba(59,130,246,0.1);
+    border: 1.5px solid #f87171;
+    transition: box-shadow 0.18s, border 0.18s;
+}
+.produk-diskon-card:hover {
+    box-shadow: 0 4px 24px 0 rgba(248,113,113,0.13);
+    border: 1.5px solid #fbbf24;
+}
+
+/* Diskon badge custom */
+.diskon-badge {
+    background: #f87171;
+    color: #ffffff;
+    letter-spacing: 1px;
+    box-shadow: 0 1px 6px 0 rgba(248,113,113,0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Main container background */
+body {
+    background: #f5f5f5;
+}
+
+.main-container {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+
+/* Category page specific */
+.category-page {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+
+/* Filter kategori section */
+.filter-kategori {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-kategori h2,
+.filter-kategori a,
+.filter-kategori span {
+    color: #1a1a1a !important;
+}
+
+/* Category links */
+.category-item {
+    background: #ffffff;
+    color: #1a1a1a !important;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    display: block;
+    border: 1px solid #e5e5e5;
+}
+
+.category-item:hover,
+.category-item.active {
+    background: #22c55e;
+    color: #ffffff !important;
+    border-color: #22c55e;
+}
+
+.category-item.selected {
+    background: #dcfce7;
+    color: #166534 !important;
+    border-left: 4px solid #22c55e;
+    font-weight: 600;
+}
+
+/* Product section */
+.product-section {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+}
+
+.product-card {
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.product-title {
+    color: #1a1a1a !important;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.75rem 0;
+}
+
+.product-price {
+    color: #22c55e !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.product-meta,
+.product-description {
+    color: #4b5563 !important;
+}
+
+/* Stock text */
+.stock-text {
+    color: #4b5563 !important;
+    font-weight: 500;
+}
+
+/* Override any Tailwind text colors */
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-gray-800,
+.text-gray-900 {
+    color: #1a1a1a !important;
+}
+
+/* Category counts */
+.category-count {
+    color: #4b5563 !important;
+    font-weight: 500;
+}
+
+/* Improve text contrast */
+.text-gray-500 {
+    color: #4b5563 !important;
+}
+
+.text-gray-700 {
+    color: #374151 !important;
+}
+
+.text-gray-900 {
+    color: #1a1a1a !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .kategori-banner {
+        border-radius: 1.2rem;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+    .diskon-section {
+        border-radius: 1rem;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .produk-diskon-card {
+        border-radius: 0.8rem;
+        padding: 10px 6px;
+    }
+    .diskon-badge {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .kategori-banner {
+        border-radius: 0.7rem;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+    .diskon-section {
+        border-radius: 0.5rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+    .produk-diskon-card {
+        border-radius: 0.5rem;
+        padding: 6px 2px;
+    }
+    .diskon-badge {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tambahkan aturan lain sesuai kebutuhan */

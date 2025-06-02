@@ -1,0 +1,752 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ product.name }} - MengTumbas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-gallery img {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .product-gallery img:hover {
+        opacity: 0.7;
+    }
+    
+    .review-stars .fas {
+        color: #ffc107;
+    }
+    .review-stars .far {
+        color: #e4e4e4;
+    }
+    
+    /* Main product image styling */
+    .main-image {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%; /* Creates a square container */
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .main-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 12px;
+    }
+    
+    .main-image > div {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Thumbnail styling */
+    .product-thumbnail {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f9fafb;
+    }
+    
+    /* Button styling to ensure visibility */
+    .btn-cart {
+        background-color: #22c55e !important;
+        color: white !important;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 180px;
+    }
+    
+    .btn-checkout {
+        background-color: #f97316 !important;
+        color: white !important;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 180px;
+    }
+    
+    .btn-wishlist {
+        background-color: white !important;
+        border: 1px solid #22c55e !important;
+        color: #22c55e !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        min-width: 120px;
+    }
+
+    /* Quantity controls styling */
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        max-width: 300px;
+    }
+
+    .quantity-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        background-color: #f3f4f6;
+        border: none;
+    }
+
+    .quantity-btn:hover {
+        background-color: #e5e7eb;
+    }
+
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #e5e7eb;
+        height: 40px;
+        margin: 0 4px;
+        border-radius: 4px;
+    }
+    
+    /* Mobile styles */
+    @media (max-width: 768px) {
+        .product-gallery {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .main-image {
+            width: 100%;
+            padding-bottom: 100%;
+        }
+        
+        .product-info {
+            padding: 1rem;
+        }
+        
+        .product-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+            z-index: 40;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .product-actions .btn {
+            flex: 1;
+            min-height: 44px;
+        }
+        
+        /* Add padding to main content to account for fixed bottom bar */
+        .main-content {
+            padding-bottom: 100px;
+        }
+    }
+
+    /* Center the product container */
+    .product-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <div class="bg-white rounded-xl shadow-sm mt-6 p-6">
+        <!-- Product Navigation -->
+        <div class="text-sm text-gray-700 mb-4">
+            <a href="{% url 'store:home' %}" class="hover:text-primary">Beranda</a> &gt;
+            <a href="{% url 'store:category_detail' product.category.slug %}" class="hover:text-primary">{{ product.category.name }}</a> &gt;
+            <span class="text-gray-900">{{ product.name }}</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Product Images -->
+            <div class="product-images">
+                <div class="main-image bg-gray-100 overflow-hidden mb-4">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-image">
+                    {% else %}
+                    <div>
+                        <i class="fas fa-image text-gray-300 text-6xl"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="product-gallery flex justify-center">
+                    <div class="product-thumbnail">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover p-1">
+                        {% else %}
+                        <i class="fas fa-image text-gray-300 text-xl"></i>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="product-info">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+                
+                <!-- Rating -->
+                <div class="flex items-center mb-4">
+                    <div class="review-stars flex">
+                        {% if avg_rating %}
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= avg_rating|floatformat:"0" %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="ml-2 text-gray-600">{{ avg_rating|floatformat:"1" }} ({{ reviews.count }} ulasan)</span>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span class="ml-2 text-gray-600">Belum ada ulasan</span>
+                        {% endif %}
+                    </div>
+                </div>
+                  <!-- Price -->
+                <div class="mb-6">
+                    <div class="text-sm text-gray-600 mb-1">Harga per unit:</div>
+                    <p class="text-lg text-gray-700" id="unit-price" data-price="{{ product.price }}">Rp {{ product.price|floatformat:0|intcomma }}</p>
+                    <div class="text-sm text-gray-600 mt-2">Total harga:</div>
+                    <p class="text-3xl font-bold text-primary" id="total-price" data-unit-price="{{ product.price }}">Rp {{ product.price|floatformat:0|intcomma }}</p>
+                    
+                    {% if product.category.origin_type == 'foreign' %}
+                    {% with tax_details=product.get_tax_details %}
+                    <div class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div class="text-blue-800 font-medium mb-2 flex items-center">
+                            <i class="fas fa-info-circle mr-2"></i> Informasi Pajak & Biaya Impor
+                        </div>
+                        <div class="grid grid-cols-2 gap-1 text-sm">
+                            <div class="text-gray-600">Harga Dasar:</div>
+                            <div class="text-right font-medium">Rp {{ tax_details.base_price|floatformat:0|intcomma }}</div>
+                            
+                            <div class="text-gray-600">Pajak Impor (10%):</div>
+                            <div class="text-right font-medium">Rp {{ tax_details.import_tax|floatformat:0|intcomma }}</div>
+                            
+                            <div class="text-gray-600">Bea Cukai:</div>
+                            <div class="text-right font-medium">Rp {{ tax_details.customs_fee|floatformat:0|intcomma }}</div>
+                            
+                            <div class="text-gray-600">Biaya Penanganan:</div>
+                            <div class="text-right font-medium">Rp {{ tax_details.handling_fee|floatformat:0|intcomma }}</div>
+                            
+                            <div class="text-gray-600">Ongkir Internasional:</div>
+                            <div class="text-right font-medium" id="shipping-cost">Rp 150,000</div>
+                            
+                            <div class="col-span-2 border-t border-blue-200 mt-1 pt-1"></div>
+                            
+                            <div class="text-blue-800 font-medium">Total per unit:</div>
+                            <div class="text-right text-blue-800 font-medium">Rp {{ tax_details.final_price|add:150000|floatformat:0|intcomma }}</div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endif %}
+                </div>
+                
+                {% if product.category.origin_type == 'foreign' %}
+                <div class="mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div class="flex items-center text-blue-800 font-medium mb-2">
+                            <i class="fas fa-shipping-fast mr-2"></i> Informasi Pengiriman
+                        </div>
+                        <p class="text-sm text-blue-700">
+                            Produk ini dikirim dari luar negeri dengan biaya pengiriman internasional sebesar <strong>Rp 150.000</strong> per unit.
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+                  <!-- Origin Type -->
+                <div class="mb-4 flex justify-center">
+                    {% if product.category.origin_type == 'local' %}
+                    <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1.5 rounded-full inline-flex items-center">
+                        <i class="fas fa-home mr-2"></i> Barang Lokal
+                    </span>
+                    {% else %}
+                    <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1.5 rounded-full inline-flex items-center">
+                        <i class="fas fa-globe mr-2"></i> Barang Asing
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Stock Status -->
+                <div class="mb-4 text-center">
+                    <p class="text-sm text-gray-600">
+                        {% if product.is_in_stock %}
+                            <span class="text-green-600"><i class="fas fa-check-circle mr-1"></i> Stok tersedia ({{ product.stock }})</span>
+                        {% else %}
+                            <span class="text-red-600"><i class="fas fa-times-circle mr-1"></i> Stok habis</span>
+                        {% endif %}
+                    </p>
+                </div>
+                  <!-- Add to Cart Form -->
+                <form id="addToCartForm" method="post" action="{% url 'store:add_to_cart' product.id %}" class="mb-8">
+                    {% csrf_token %}
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="quantity-control">
+                            <label class="block text-gray-700 mb-2 text-center">Jumlah:</label>
+                            <div class="flex items-center">                        
+                                <button type="button" class="quantity-btn rounded-l-lg" onclick="decrementQuantity()">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock }}" 
+                                    class="quantity-input focus:outline-none" 
+                                    {% if not product.is_in_stock %}disabled{% endif %} onchange="updateTotalPrice()">
+                                <button type="button" class="quantity-btn rounded-r-lg" onclick="incrementQuantity()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row justify-center items-center gap-4 mt-6">
+                        <button type="button" onclick="addToCartWithPopup()" class="btn-cart py-3 px-8 rounded-lg font-medium transition-colors flex items-center justify-center {% if not product.is_in_stock %}opacity-50 cursor-not-allowed{% endif %}" {% if not product.is_in_stock %}disabled{% endif %}>
+                            <i class="fas fa-cart-plus mr-2"></i> Tambah ke Keranjang
+                        </button>
+                        
+                        <button type="submit" formaction="{% url 'store:add_to_cart_and_checkout' product.id %}" name="checkout" class="btn-checkout py-3 px-8 rounded-lg font-medium transition-colors flex items-center justify-center {% if not product.is_in_stock %}opacity-50 cursor-not-allowed{% endif %}" {% if not product.is_in_stock %}disabled{% endif %}>
+                            <i class="fas fa-credit-card mr-2"></i> Checkout
+                        </button>
+                        
+                        {% if user.is_authenticated %}
+                        <button type="button" id="wishlist-button" 
+                                class="btn-wishlist py-3 px-4 rounded-lg transition-colors flex items-center justify-center wishlist-btn"
+                                data-product="{{ product.id }}" 
+                                data-in-wishlist="{% if in_wishlist %}true{% else %}false{% endif %}">
+                            <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart wishlist-icon"></i>
+                        </button>
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn-wishlist py-3 px-4 rounded-lg transition-colors flex items-center justify-center">
+                            <i class="far fa-heart"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                <script>
+                    function addToCartWithPopup() {
+                        const productId = {{ product.id }};
+                        const quantity = document.getElementById('quantity').value;
+                        addToCart(productId, quantity);
+                    }
+                    
+                    function decrementQuantity() {
+                        const quantityInput = document.getElementById('quantity');
+                        const currentValue = parseInt(quantityInput.value);
+                        if (currentValue > 1) {
+                            quantityInput.value = currentValue - 1;
+                            updateTotalPrice();
+                        }
+                    }
+                    
+                    function incrementQuantity() {
+                        const quantityInput = document.getElementById('quantity');
+                        const currentValue = parseInt(quantityInput.value);
+                        const maxStock = {{ product.stock }};
+                        if (currentValue < maxStock) {
+                            quantityInput.value = currentValue + 1;
+                            updateTotalPrice();
+                        }
+                    }
+                    
+                    function updateTotalPrice() {
+                        const quantity = parseInt(document.getElementById('quantity').value);
+                        const unitPrice = parseFloat(document.getElementById('unit-price').getAttribute('data-price'));
+                        const totalPrice = quantity * unitPrice;
+                        
+                        document.getElementById('total-price').textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
+                    }
+                    
+                    {% if user.is_authenticated %}
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const wishlistButton = document.getElementById('wishlist-button');
+                        wishlistButton.addEventListener('click', function() {
+                            toggleWishlist({{ product.id }}, this);
+                        });
+                    });
+                    {% endif %}
+                </script>
+                
+                <!-- Product Quick Info -->
+                <div class="border-t border-gray-200 pt-4 mt-6">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Kategori</p>
+                            <p class="font-medium">{{ product.category.name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Tanggal Diperbarui</p>
+                            <p class="font-medium">{{ product.updated_at|date:"d M Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Details Section -->
+    <div class="bg-white rounded-xl shadow-sm mt-6 p-6">
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gray-900 text-center">Deskripsi Produk</h2>
+            <div class="prose max-w-none">
+                <p>{{ product.description|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="bg-white rounded-xl shadow-sm mt-6 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Ulasan Produk</h2>
+            <button class="text-primary hover:text-green-600" onclick="toggleReviewForm()">
+                <i class="fas fa-pen mr-1"></i> Tulis Ulasan
+            </button>
+        </div>
+        
+        <!-- Review Form (initially hidden) -->
+        <div id="review-form" class="border rounded-lg p-4 mb-6" style="display: none;">
+            <h3 class="font-medium text-lg mb-2">Tulis Ulasan Anda</h3>
+            {% if user.is_authenticated %}
+                {% if user_review %}
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg mb-4">
+                        <p>Anda sudah memberikan ulasan untuk produk ini.</p>
+                    </div>
+                {% else %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Rating:</label>
+                            <div class="flex space-x-2">
+                                <div class="rating-input">
+                                    {% for i in "12345" %}
+                                    <input type="radio" name="rating" id="rating-{{ i }}" value="{{ i }}" class="hidden">
+                                    <label for="rating-{{ i }}" class="cursor-pointer text-2xl rating-star">★</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Ulasan Anda:</label>
+                            <textarea name="comment" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="button" class="mr-2 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg" onclick="toggleReviewForm()">Batal</button>
+                            <button type="submit" class="bg-primary hover:bg-green-600 text-white py-2 px-4 rounded-lg">Kirim Ulasan</button>
+                        </div>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg">
+                    <p>Silakan <a href="{% url 'accounts:login' %}" class="text-blue-600 underline">login</a> untuk memberikan ulasan.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Review List -->
+        <div class="space-y-6">
+            {% for review in reviews %}
+            <div class="review-item border-b border-gray-100 pb-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center">
+                            <p class="font-medium">{{ review.customer.get_display_name }}</p>
+                            <span class="mx-2 text-gray-300">•</span>
+                            <p class="text-sm text-gray-500">{{ review.created_at|date:"d M Y" }}</p>
+                        </div>
+                        <div class="review-stars flex mt-1">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-2 text-gray-700">{{ review.comment }}</p>
+            </div>
+            {% empty %}
+            <div class="text-center py-6 text-gray-500">
+                <i class="far fa-comment text-4xl mb-2"></i>
+                <p>Belum ada ulasan untuk produk ini.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Indonesian Rupiah formatting function
+    function formatRupiah(amount) {
+        const number = Math.floor(amount);
+        return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+      // Update total price based on quantity
+    function updateTotalPrice() {
+        const quantityInput = document.getElementById('quantity');
+        const totalPriceElement = document.getElementById('total-price');
+        const unitPrice = parseFloat(totalPriceElement.getAttribute('data-unit-price'));
+        
+        const quantity = parseInt(quantityInput.value) || 1;
+        const totalPrice = unitPrice * quantity;
+        
+        totalPriceElement.textContent = formatRupiah(totalPrice);
+        
+        // Update shipping info if available
+        const shippingInfo = document.getElementById('shipping-cost');
+        if (shippingInfo) {
+            const baseShipping = 150000; // Rp 150.000 per unit for foreign products
+            const totalShipping = baseShipping * quantity;
+            shippingInfo.textContent = formatRupiah(totalShipping);
+        }
+    }
+    
+    // Quantity increment/decrement with real-time price updates
+    function incrementQuantity() {
+        const input = document.getElementById('quantity');
+        const maxValue = parseInt(input.getAttribute('max'));
+        let value = parseInt(input.value) || 0;
+        if (value < maxValue) {
+            input.value = value + 1;
+            updateTotalPrice();
+        }
+    }
+    
+    function decrementQuantity() {
+        const input = document.getElementById('quantity');
+        let value = parseInt(input.value) || 1;
+        if (value > 1) {
+            input.value = value - 1;
+            updateTotalPrice();
+        }
+    }
+    
+    // Toggle review form
+    function toggleReviewForm() {
+        const form = document.getElementById('review-form');
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+      // Rating stars functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize price formatting on page load
+        const unitPriceElement = document.getElementById('unit-price');
+        const totalPriceElement = document.getElementById('total-price');
+        
+        if (unitPriceElement) {
+            const unitPrice = parseFloat(unitPriceElement.getAttribute('data-price'));
+            unitPriceElement.textContent = formatRupiah(unitPrice);
+        }
+          if (totalPriceElement) {
+            const unitPrice = parseFloat(totalPriceElement.getAttribute('data-unit-price'));
+            totalPriceElement.textContent = formatRupiah(unitPrice);
+        }
+        
+        // Initialize checkout quantity
+        const checkoutQuantityInput = document.getElementById('checkout-quantity');
+        const quantityInput = document.getElementById('quantity');
+        if (checkoutQuantityInput && quantityInput) {
+            checkoutQuantityInput.value = quantityInput.value;
+        }
+        
+        // Format related products prices
+        const relatedProductPrices = document.querySelectorAll('.product-card p[data-price]');
+        relatedProductPrices.forEach(priceElement => {
+            const price = parseFloat(priceElement.getAttribute('data-price'));
+            if (!isNaN(price)) {
+                priceElement.textContent = formatRupiah(price);
+            }
+        });
+        
+        const stars = document.querySelectorAll('.rating-star');
+        
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                stars.forEach((s, i) => {
+                    if (i <= index) {
+                        s.classList.add('text-yellow-500');
+                    } else {
+                        s.classList.remove('text-yellow-500');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseover', () => {
+                stars.forEach((s, i) => {
+                    if (i <= index) {
+                        s.classList.add('text-yellow-300');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseout', () => {
+                stars.forEach((s) => {
+                    s.classList.remove('text-yellow-300');
+                });
+            });
+        });
+    });
+    
+    // Add to cart function
+    function addToCart(productId, quantity) {
+        fetch(`/store/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count if needed
+                if (document.getElementById('cart-count')) {
+                    document.getElementById('cart-count').textContent = data.cart_count;
+                }
+                
+                // Show success notification
+                showNotification('Produk berhasil ditambahkan ke keranjang', 'success');
+            } else {
+                showNotification(data.message || 'Gagal menambahkan produk ke keranjang', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+    
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+        // Check if notification container exists
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed bottom-4 right-4 z-50 flex flex-col space-y-2';
+            document.body.appendChild(container);
+        }
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `px-4 py-3 rounded-lg shadow-lg flex items-center ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        } transform transition-all duration-300 translate-y-0 opacity-100`;
+        
+        // Icon
+        const icon = document.createElement('i');
+        icon.className = `fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2`;
+        notification.appendChild(icon);
+        
+        // Message
+        const text = document.createElement('span');
+        text.textContent = message;
+        notification.appendChild(text);
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Toggle wishlist function
+    function toggleWishlist(productId, buttonElement) {
+        const isInWishlist = buttonElement.getAttribute('data-in-wishlist') === 'true';
+        const url = isInWishlist ? 
+            `/store/remove-from-wishlist/${productId}/` : 
+            `/store/add-to-wishlist/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update button state
+                const icon = buttonElement.querySelector('.wishlist-icon');
+                if (isInWishlist) {
+                    icon.classList.replace('fas', 'far');
+                    buttonElement.setAttribute('data-in-wishlist', 'false');
+                    showNotification('Produk dihapus dari wishlist', 'success');
+                } else {
+                    icon.classList.replace('far', 'fas');
+                    buttonElement.setAttribute('data-in-wishlist', 'true');
+                    showNotification('Produk ditambahkan ke wishlist', 'success');
+                }
+            } else {
+                showNotification(data.message || 'Gagal memperbarui wishlist', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+        });
+    }
+</script>
+{% endblock %}

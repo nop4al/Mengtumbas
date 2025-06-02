@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Riwayat Pesanan - MengTumbas{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Riwayat Pesanan</h1>
+            <p class="text-gray-600">Lihat semua pesanan Anda</p>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm mb-6">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold">Filter Pesanan</h2>
+                    <span class="text-sm text-gray-500">{{ orders.count }} pesanan</span>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'accounts:order_history' %}" class="px-4 py-2 rounded-lg {% if not status %}bg-primary text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} text-sm font-medium">
+                        Semua
+                    </a>
+                    <a href="{% url 'accounts:order_history' %}?status=pending" class="px-4 py-2 rounded-lg {% if status == 'pending' %}bg-yellow-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} text-sm font-medium">
+                        Menunggu Pembayaran
+                    </a>
+                    <a href="{% url 'accounts:order_history' %}?status=processing" class="px-4 py-2 rounded-lg {% if status == 'processing' %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} text-sm font-medium">
+                        Diproses
+                    </a>
+                    <a href="{% url 'accounts:order_history' %}?status=shipped" class="px-4 py-2 rounded-lg {% if status == 'shipped' %}bg-indigo-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} text-sm font-medium">
+                        Dikirim
+                    </a>
+                    <a href="{% url 'accounts:order_history' %}?status=delivered" class="px-4 py-2 rounded-lg {% if status == 'delivered' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} text-sm font-medium">
+                        Selesai
+                    </a>
+                    <a href="{% url 'accounts:order_history' %}?status=canceled" class="px-4 py-2 rounded-lg {% if status == 'canceled' %}bg-red-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} text-sm font-medium">
+                        Dibatalkan
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if orders %}
+            <div class="space-y-6">
+                {% for order in orders %}
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-4 bg-gray-50 border-b border-gray-200">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <p class="text-sm text-gray-500">Order #{{ order.order_number }}</p>
+                                <p class="text-sm text-gray-500">{{ order.created_at|date:"d M Y, H:i" }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                {% if order.status == 'pending' %}
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-clock mr-1.5"></i>
+                                        <span>Menunggu Pembayaran</span>
+                                    </span>
+                                {% elif order.status == 'processing' %}
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-cog mr-1.5"></i>
+                                        <span>Diproses</span>
+                                    </span>
+                                {% elif order.status == 'shipped' %}
+                                    <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-truck mr-1.5"></i>
+                                        <span>Dikirim</span>
+                                    </span>
+                                {% elif order.status == 'delivered' %}
+                                    <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-check-circle mr-1.5"></i>
+                                        <span>Selesai</span>
+                                    </span>
+                                {% elif order.status == 'canceled' %}
+                                    <span class="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-times-circle mr-1.5"></i>
+                                        <span>Dibatalkan</span>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            {% for item in order.items.all %}
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 object-cover rounded-lg">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <p class="font-medium text-gray-900">{{ item.product.name }}</p>
+                                    <p class="text-sm text-gray-500">{{ item.quantity }} x Rp {{ item.price|floatformat:0 }}</p>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-900">Rp {{ item.get_total|floatformat:0 }}</p>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<div class="border-t border-gray-100"></div>{% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-6 pt-4 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Pesanan</p>
+                                    <p class="text-lg font-bold text-primary">Rp {{ order.total_amount|floatformat:0 }}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'store:order_detail' order.order_number %}" class="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium">
+                                        <i class="fas fa-eye mr-1"></i> Detail
+                                    </a>
+                                    
+                                    {% if order.status == 'delivered' %}
+                                    <a href="#" class="px-4 py-2 bg-primary text-white hover:bg-green-600 rounded-lg text-sm font-medium">
+                                        <i class="fas fa-star mr-1"></i> Nilai
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if order.status == 'pending' %}
+                                    <form method="post" action="{% url 'store:cancel_order' order.order_number %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-sm font-medium">
+                                            <i class="fas fa-times mr-1"></i> Batalkan
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white rounded-xl shadow-sm p-10 text-center">
+                <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-shopping-bag text-3xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Belum Ada Pesanan</h3>
+                <p class="text-gray-600 mb-6">Anda belum melakukan pembelian apapun.</p>
+                <a href="{% url 'store:home' %}" class="px-6 py-2 bg-primary text-white hover:bg-green-600 rounded-lg text-sm font-medium">
+                    Mulai Belanja
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

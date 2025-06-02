@@ -1,0 +1,210 @@
+[
+    {
+        "model": "store.category",
+        "pk": 1,
+        "fields": {
+            "name": "Electronics",
+            "slug": "electronics",
+            "description": "Latest electronic gadgets and devices",
+            "is_active": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.category",
+        "pk": 2,
+        "fields": {
+            "name": "Clothing",
+            "slug": "clothing",
+            "description": "Fashion and apparel for all ages",
+            "is_active": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.category",
+        "pk": 3,
+        "fields": {
+            "name": "Home & Garden",
+            "slug": "home-garden",
+            "description": "Home improvement and garden supplies",
+            "is_active": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.category",
+        "pk": 4,
+        "fields": {
+            "name": "Books",
+            "slug": "books",
+            "description": "Educational and entertainment books",
+            "is_active": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 1,
+        "fields": {
+            "name": "Smartphone Pro Max",
+            "slug": "smartphone-pro-max",
+            "description": "Latest flagship smartphone with advanced features and 5G connectivity. Perfect for photography, gaming, and productivity.",
+            "category": 1,
+            "price": "999.00",
+            "stock": 50,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 2,
+        "fields": {
+            "name": "Wireless Headphones",
+            "slug": "wireless-headphones",
+            "description": "Premium noise-cancelling wireless headphones with 30-hour battery life and crystal clear sound quality.",
+            "category": 1,
+            "price": "199.00",
+            "stock": 30,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 3,
+        "fields": {
+            "name": "Laptop Ultrabook",
+            "slug": "laptop-ultrabook",
+            "description": "Ultra-thin and lightweight laptop with 16GB RAM, 512GB SSD, and all-day battery life. Perfect for work and study.",
+            "category": 1,
+            "price": "1299.00",
+            "stock": 25,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 4,
+        "fields": {
+            "name": "Designer T-Shirt",
+            "slug": "designer-t-shirt",
+            "description": "Premium cotton t-shirt with modern design. Available in multiple colors and sizes. Comfortable and stylish.",
+            "category": 2,
+            "price": "29.99",
+            "stock": 100,
+            "is_active": true,
+            "featured": false,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 5,
+        "fields": {
+            "name": "Denim Jeans",
+            "slug": "denim-jeans",
+            "description": "Classic denim jeans with perfect fit. Made from high-quality denim fabric with modern cut and comfortable wear.",
+            "category": 2,
+            "price": "79.99",
+            "stock": 75,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 6,
+        "fields": {
+            "name": "Winter Jacket",
+            "slug": "winter-jacket",
+            "description": "Warm and waterproof winter jacket with down insulation. Perfect for cold weather protection with stylish design.",
+            "category": 2,
+            "price": "149.99",
+            "stock": 40,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 7,
+        "fields": {
+            "name": "Coffee Maker Pro",
+            "slug": "coffee-maker-pro",
+            "description": "Professional-grade coffee maker with programmable settings. Brew the perfect cup every time with temperature control.",
+            "category": 3,
+            "price": "89.99",
+            "stock": 60,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 8,
+        "fields": {
+            "name": "Garden Tool Set",
+            "slug": "garden-tool-set",
+            "description": "Complete garden tool set with essential tools for gardening. Includes trowel, pruners, gloves, and storage bag.",
+            "category": 3,
+            "price": "49.99",
+            "stock": 35,
+            "is_active": true,
+            "featured": false,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 9,
+        "fields": {
+            "name": "Programming Book Collection",
+            "slug": "programming-book-collection",
+            "description": "Essential programming books collection covering Python, JavaScript, and web development. Perfect for beginners and experts.",
+            "category": 4,
+            "price": "99.99",
+            "stock": 20,
+            "is_active": true,
+            "featured": true,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    },
+    {
+        "model": "store.product",
+        "pk": 10,
+        "fields": {
+            "name": "Business Strategy Guide",
+            "slug": "business-strategy-guide",
+            "description": "Comprehensive guide to business strategy and entrepreneurship. Learn from industry experts and successful case studies.",
+            "category": 4,
+            "price": "39.99",
+            "stock": 45,
+            "is_active": true,
+            "featured": false,
+            "created_at": "2025-05-27T08:00:00Z",
+            "updated_at": "2025-05-27T08:00:00Z"
+        }
+    }
+]
